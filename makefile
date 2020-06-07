@@ -1,8 +1,9 @@
-SUBDIRS=./device ./lib ./boot ./kernel 
+SUBDIRS=./device ./thread ./lib ./boot ./kernel 
 IMG = GwOS.img
 BOOTDIR = ./boot
 KERDIR = ./kernel
 LIBDIR = ./lib
+
  
 all: 
 	for dir in $(SUBDIRS); do \

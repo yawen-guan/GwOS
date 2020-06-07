@@ -6,7 +6,7 @@
 //asm [volatile] ("assembly code" : output : input : clobber/modify)
 
 /** 
- * 向端口port写入一个字节data
+ * @brief 向端口port写入一个字节data
  */
 static inline void outb(uint16_t port, uint8_t data){
     asm volatile("outb %b0, %w1" : : "a"(data), "Nd"(port));
@@ -15,7 +15,7 @@ static inline void outb(uint16_t port, uint8_t data){
 }
 
 /**
- * 向端口port写入addr起始的cnt个word
+ * @brief 向端口port写入addr起始的cnt个word
  */
 static inline void outsw(uint16_t port, const void *addr, uint32_t cnt){
     asm volatile("cld; rep outsw" : "+S"(addr), "+c"(cnt) : "d"(port));
@@ -23,7 +23,7 @@ static inline void outsw(uint16_t port, const void *addr, uint32_t cnt){
 }
 
 /**
- * 从端口port读取一个字节并返回
+ * @brief 从端口port读取一个字节并返回
  */
 
 static inline uint8_t inb(uint16_t port){
@@ -34,7 +34,7 @@ static inline uint8_t inb(uint16_t port){
 }
 
 /**
- * 从端口port读入cnt个word并写入addr
+ * @brief 从端口port读入cnt个word并写入addr
  */
 static inline void insw(uint16_t port, void *addr, uint32_t cnt){
     asm volatile("cld; rep insw" : "+D"(addr), "+c"(cnt) : "d"(port));

@@ -3,22 +3,25 @@
 #include "memory.h"
 #include "print.h"
 #include "string.h"
+#include "thread.h"
+
+void k_thread_a(void *arg);  //一定要先声明后调用！不然虚拟地址会出错
 
 int main(void) {
     put_str("I am kernel\n", 0x07);
     init_all();
-    // asm volatile("sti");  // open interrupt
-    // intr_enable();
-    // put_char_pos('A', 0x07, 1 * 80 + 0);
-    // put_char_in_pos('B', 0x07, 2, 0);
-    // put_char_in_pos('\\', 0x07, 24, 79);
-    // init_all();
-    // put_str("\n get kernel page start vaddr is \n", 0x07);
-    void *addr = get_kernel_pages(3);
-    put_uint((uint32_t)addr, 16, 0x07);
-    put_char('\n', 0x07);
-    // asm volatile("sti"); //开中断
+    put_str("here\n", 0x07);
+
+    thread_start("k_thread_a", 31, k_thread_a, "argA ");
+
     while (1)
         ;
     return 0;
+}
+
+void k_thread_a(void *arg) {
+    char *s = arg;
+    while (1) {
+        put_str(s, 0x07);
+    }
 }

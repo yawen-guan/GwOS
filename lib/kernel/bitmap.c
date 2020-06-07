@@ -3,6 +3,10 @@
 #include "string.h"
 #include "print.h"
 
+/** 
+ * @brief 初始化bitmap
+ * 
+ */
 void bitmap_init(struct bitmap *mp){
     put_str("\nbitmap_init start\n", 0x07);
     put_str("\nmp -> len = ", 0x07);
@@ -13,7 +17,9 @@ void bitmap_init(struct bitmap *mp){
 }
 
 /** 
- * 判断bitmap的第idx位是否为1
+ * @brief 判断bitmap的第idx位是否为1
+ * 
+ * @return bool
  */ 
 bool bitmap_check_idx(struct bitmap* mp, uint32_t idx){
     uint32_t idx_byte = idx / 8;
@@ -23,7 +29,8 @@ bool bitmap_check_idx(struct bitmap* mp, uint32_t idx){
 }
 
 /** 
- * 在bitmap中申请连续的cnt个位
+ * @brief 在bitmap中申请连续的cnt个位
+ * 
  * @return 成功则返回起始位的下标，否则返回-1
  */
 int32_t bitmap_apply_cnt(struct bitmap *mp, uint32_t cnt){
@@ -42,6 +49,10 @@ int32_t bitmap_apply_cnt(struct bitmap *mp, uint32_t cnt){
     return -1;
 }
 
+/**
+ * @brief 将bitmap的第idx位的值设置为value
+ * 
+ */
 void bitmap_set_idx(struct bitmap *mp, uint32_t idx, uint8_t value){
     uint32_t idx_byte = idx / 8;
     uint32_t idx_bit = idx % 8;
