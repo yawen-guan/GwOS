@@ -1,5 +1,6 @@
-#ifndef __DEVICE_TIME_H
-#define __DEVICE_TIME_H
+// #ifndef __DEVICE_TIME_H
+// #define __DEVICE_TIME_H
+#pragma once
 
 #include "stdint.h"
 
@@ -9,4 +10,4 @@
  */
 void timer_init();
 
-#endif
+// #endif

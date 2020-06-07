@@ -1,5 +1,7 @@
-#ifndef __LIB_KERNEL_LIST_H
-#define __LIB_KERNEL_LIST_H
+// #ifndef __LIB_KERNEL_LIST_H
+// #define __LIB_KERNEL_LIST_H
+
+#pragma once
 
 #include "global.h"
 
@@ -14,6 +16,11 @@ struct list {
 };
 
 typedef bool(function)(struct list_node*, int arg);
+
+// elem2entry: 将elem_ptr转换成struct_type类型的指针, elem_ptr对应的成员是struct_member_name
+#define offset(struct_type, member) (int)(&((struct_type*)0)->member)
+#define elem2entry(struct_type, struct_member_name, elem_ptr) \
+    (struct_type*)((int)elem_ptr - offset(struct_type, struct_member_name))
 
 /**
  * @brief 初始化环形双向列表
@@ -77,4 +84,4 @@ uint32_t list_len(struct list* plist);
  */
 bool list_empty(struct list* plist);
 
-#endif
+// #endif

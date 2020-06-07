@@ -7,9 +7,9 @@ ASFLAGS = -felf32
 LD = ld
 LDFLAGS = -m elf_i386 # -shared
 
-INCLUDES = -I .. -I ../../kernel/include
+INCLUDES = -I .. -I ../../kernel/include -I ../../thread
 
-PROGRAMS = print_asm.o print_c.o bitmap.o
+PROGRAMS = print_asm.o print_c.o bitmap.o list.o
 
 all: $(PROGRAMS)
 	# $(LD) $(LDFLAGS) print_asm.o print_c.o -o print.o

@@ -1,6 +1,9 @@
-#ifndef __THREAD_H
-#define __THREAD_H
+// #ifndef __THREAD_H
+// #define __THREAD_H
 
+#pragma once
+
+#include "list.h"
 #include "stdint.h"
 
 enum task_status {
@@ -30,7 +33,7 @@ struct intr_stack {
     uint32_t es;
     uint32_t ds;
 
-    /* 以下由cpu从低特权级进入高特权级时压入 */
+    /* cpu从低特权级进入高特权级时压入 */
     uint32_t err_code;  // err_code会被压入在eip之后
     void (*eip)(void);
     uint32_t cs;
@@ -52,9 +55,14 @@ struct thread_stack {
 struct pcb {
     uint32_t *self_kstack;  // 自己的内核栈
     enum task_status status;
-    uint8_t priority;
     char name[16];
-    uint32_t stack_magic;  //魔数， 栈的边界标记
+    uint8_t priority;
+    uint8_t ticks;                   // 每次在cpu上执行多少tick（嘀嗒）
+    uint32_t elapsed_ticks;          //已经执行的tick数
+    struct list_node general_node;   //在一般的队列中的节点
+    struct list_node all_list_node;  //在thread_all_list中的节点
+    uint32_t *pg_dir;                //进程:自身的页表的虚拟地址; 线程:NULL
+    uint32_t stack_magic;            //魔数， 栈的边界标记
 };
 
 /**
@@ -79,4 +87,23 @@ void init_thread(struct pcb *pthread, char *name, int priority);
  */
 struct pcb *thread_start(char *name, int prioriry, thread_func func, void *func_arg);
 
-#endif
+/**
+ * @brief 获取当前运行中线程的pcb指针
+ * 各个线程所用的0级栈都在自己的PCB中，所以当前栈指针的高20位是当前运行线程的pcb的起始地址
+ * @return struct pcb* 
+ */
+struct pcb *running_thread();
+
+/**
+ * @brief 调度
+ * 
+ */
+void schedule();
+
+/**
+ * @brief 线程环境初始化
+ * 
+ */
+void thread_init();
+
+// #endif

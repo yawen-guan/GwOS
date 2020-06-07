@@ -8,6 +8,7 @@ section .text
 global put_char
 global put_char_pos
 global put_str
+global set_cursor
 
 extern put_int
 
@@ -158,7 +159,27 @@ put_char_pos: ;(char, attr, pos)
     popad
     ret
 
+set_cursor: ;(pos)
+    pushad
 
+    mov bx, [esp + 36] ;第一个参数
+    ;高8位
+    mov dx, 0x03d4
+    mov al, 0x0e
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bh
+    out dx, al
+    ;低8位
+    mov dx, 0x03d4
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5
+    mov al, bl
+    out dx, al
+    
+    popad
+    ret 
 
 
 

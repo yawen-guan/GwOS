@@ -1,9 +1,11 @@
-#ifndef __KERNEL_INTERRUPT_H
-#define __KERNEL_INTERRUPT_H
+// #ifndef __KERNEL_INTERRUPT_H
+// #define __KERNEL_INTERRUPT_H
+
+#pragma once
 
 #include "stdint.h"
 
-enum intr_status{
+enum intr_status {
     INTR_OFF,
     INTR_ON
 };
@@ -38,5 +40,10 @@ enum intr_status intr_enable();
  */
 enum intr_status intr_disable();
 
+/**
+ * @brief 注册中断处理函数
+ * 
+ */
+void register_handler(uint8_t vector_id, void* function);
 
-#endif
+// #endif
