@@ -12,7 +12,7 @@ KERNEL_LIB_DIR = ../lib/kernel
 LIB_DIR = ../lib
 DEVICE_DIR = ../device
 PROGRAM = main.o init.o interrupt.o kernel.o memory.o
-OBJFILE = main.o init.o $(DEVICE_DIR)/keyboard.o interrupt.o memory.o $(KERNEL_LIB_DIR)/bitmap.o $(LIB_DIR)/string.o $(KERNEL_LIB_DIR)/print_c.o $(KERNEL_LIB_DIR)/print_asm.o kernel.o
+OBJFILE = main.o init.o $(DEVICE_DIR)/timer.o $(DEVICE_DIR)/keyboard.o interrupt.o memory.o $(KERNEL_LIB_DIR)/bitmap.o $(LIB_DIR)/string.o $(KERNEL_LIB_DIR)/print_c.o $(KERNEL_LIB_DIR)/print_asm.o kernel.o
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 
 all: $(PROGRAM)

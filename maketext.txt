@@ -2,7 +2,6 @@ for dir in ./device ./lib ./boot ./kernel ; do \
           make -C $dir; \
         done
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/device'
-gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel  keyboard.c -o keyboard.o
 # ld -m elf_i386  print_asm.o print_c.o -o print.o
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/device'
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/lib'
@@ -20,7 +19,8 @@ make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs
 make[1]: Nothing to be done for 'all'.
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/boot'
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/kernel'
-ld -m elf_i386   main.o init.o ../device/keyboard.o interrupt.o memory.o ../lib/kernel/bitmap.o ../lib/string.o ../lib/kernel/print_c.o ../lib/kernel/print_asm.o kernel.o -Ttext 0xc0001500 -e main -o kernel.com
+gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../lib -I ../lib/kernel -I ./include -I ../device memory.c -o memory.o
+ld -m elf_i386   main.o init.o ../device/timer.o ../device/keyboard.o interrupt.o memory.o ../lib/kernel/bitmap.o ../lib/string.o ../lib/kernel/print_c.o ../lib/kernel/print_asm.o kernel.o -Ttext 0xc0001500 -e main -o kernel.com
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/kernel'
 dd if=./boot/mbr.com of=GwOS.img seek=0 conv=notrunc
 dd if=./boot/loader.com of=GwOS.img seek=1 conv=notrunc

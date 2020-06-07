@@ -9,7 +9,7 @@ LDFLAGS = -m elf_i386 # -shared
 
 INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel 
 
-PROGRAMS = keyboard.o
+PROGRAMS = keyboard.o timer.o
 
 all: $(PROGRAMS)
 	# $(LD) $(LDFLAGS) print_asm.o print_c.o -o print.o
