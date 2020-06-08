@@ -106,4 +106,19 @@ void schedule();
  */
 void thread_init();
 
+/**
+ * @brief 将当前运行的线程阻塞，状态改变为status
+ * 
+ * @param status 应为TASK_BLOCKED, TASK_WAITING, TASK_HANDING之一
+ * 
+ */
+void thread_block(enum task_status status);
+
+/**
+ * @brief 将线程由阻塞态回复到ready态
+ * 
+ * @param pthread 
+ */
+void thread_unblock(struct pcb *pthread);
+
 // #endif

@@ -1,5 +1,6 @@
 #include "init.h"
 
+#include "console.h"
 #include "interrupt.h"
 #include "keyboard.h"
 #include "memory.h"
@@ -13,5 +14,6 @@ void init_all() {
     mem_init();
     thread_init();
     timer_init();
+    console_init();
     // keyboard_init();
 }

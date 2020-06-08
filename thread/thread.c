@@ -125,7 +125,7 @@ void make_main_thread() {
 }
 
 /**
- * @brief 调度
+ * @brief 调度线程：将当前线程换下， 换上下一个线程
  * 
  */
 void schedule() {
@@ -170,4 +170,32 @@ void thread_init() {
     make_main_thread();
 
     put_str("thread_init done\n", 0x07);
+}
+
+/**
+ * @brief 将当前运行的线程阻塞，状态改变为status
+ * 
+ * @param status 应为TASK_BLOCKED, TASK_WAITING, TASK_HANDING之一
+ * 
+ */
+void thread_block(enum task_status status) {
+    enum intr_status old_status = intr_disable();
+    struct pcb *now_thread = running_thread();
+    now_thread->status = status;
+    schedule();
+    intr_set_status(old_status);
+}
+
+/**
+ * @brief 将线程由阻塞态回复到ready态
+ * 
+ * @param pthread 
+ */
+void thread_unblock(struct pcb *pthread) {
+    enum intr_status old_status = intr_disable();
+    if (pthread->status != TASK_READY) {
+        list_push(&thread_ready_list, &pthread->general_node);
+        pthread->status = TASK_READY;
+    }
+    intr_set_status(old_status);
 }

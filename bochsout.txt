@@ -19,7 +19,7 @@
 00000000000i[      ]   Sound support: no
 00000000000i[      ]   USB support: no
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f482766c010. after alignment, vector=0x7f482766d000
+00000000000i[MEM0  ] allocated memory at 0x7f3d254ca010. after alignment, vector=0x7f3d254cb000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/opt/bochs/share/bochs/BIOS-bochs-latest')
@@ -29,7 +29,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Mon Jun  8 10:05:01 2020 (time0=1591581901)
+00000000000i[CMOS  ] Setting initial clock to: Mon Jun  8 11:57:48 2020 (time0=1591588668)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -261,27 +261,27 @@
 00002434346i[BIOS  ] ata0-0: PCHS=20/16/63 translation=none LCHS=20/16/63
 00005881170i[BIOS  ] IDE time out
 00006158600i[BIOS  ] Booting from 0000:7c00
-00007648050i[XGUI  ] charmap update. Font is 9 x 16
-00599752845i[      ] Ctrl-C detected in signal handler.
-00599752846i[      ] dbg: Quit
-00599752846i[CPU0  ] CPU is in protected mode (active)
-00599752846i[CPU0  ] CS.mode = 32 bit
-00599752846i[CPU0  ] SS.mode = 32 bit
-00599752846i[CPU0  ] EFER   = 0x00000000
-00599752846i[CPU0  ] | EAX=0000070f  EBX=c0004039  ECX=00000020  EDX=c01003d4
-00599752846i[CPU0  ] | ESP=c009ef90  EBP=c009eff8  ESI=00070000  EDI=00000000
-00599752846i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df IF tf sf zf af pf cf
-00599752846i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00599752846i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-00599752846i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00599752846i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00599752846i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00599752846i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 00000000 0 0
-00599752846i[CPU0  ] |  GS:0018( 0003| 0|  0) c00b8000 00007fff 1 1
-00599752846i[CPU0  ] | EIP=c00026cc (c00026cc)
-00599752846i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
-00599752846i[CPU0  ] | CR3=0x00100000 CR4=0x00000000
-00599752846d[PCI   ] Exit
-00599752846i[CMOS  ] Last time is 1591581912 (Mon Jun  8 10:05:12 2020)
-00599752846i[XGUI  ] Exit
-00599752846i[SIM   ] quit_sim called with exit code 0
+00007681750i[XGUI  ] charmap update. Font is 9 x 16
+02538354183i[      ] Ctrl-C detected in signal handler.
+02538354184i[      ] dbg: Quit
+02538354184i[CPU0  ] CPU is in protected mode (active)
+02538354184i[CPU0  ] CS.mode = 32 bit
+02538354184i[CPU0  ] SS.mode = 32 bit
+02538354184i[CPU0  ] EFER   = 0x00000000
+02538354184i[CPU0  ] | EAX=000007c7  EBX=c0000f8e  ECX=00000072  EDX=c00003d5
+02538354184i[CPU0  ] | ESP=c0100d98  EBP=c0100e10  ESI=00000000  EDI=00000000
+02538354184i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af PF cf
+02538354184i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+02538354184i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+02538354184i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02538354184i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02538354184i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+02538354184i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 00000000 0 0
+02538354184i[CPU0  ] |  GS:0018( 0003| 0|  0) c00b8000 00007fff 1 1
+02538354184i[CPU0  ] | EIP=c0002707 (c0002707)
+02538354184i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+02538354184i[CPU0  ] | CR3=0x00100000 CR4=0x00000000
+02538354184d[PCI   ] Exit
+02538354184i[CMOS  ] Last time is 1591588718 (Mon Jun  8 11:58:38 2020)
+02538354184i[XGUI  ] Exit
+02538354184i[SIM   ] quit_sim called with exit code 0

@@ -19,7 +19,7 @@ OBJFILE = main.o init.o debug.o interrupt.o \
 	  $(KERNEL_LIB_DIR)/print_asm.o \
       memory.o $(KERNEL_LIB_DIR)/bitmap.o \
       $(LIB_DIR)/string.o $(THREAD_DIR)/thread.o $(KERNEL_LIB_DIR)/list.o \
-      $(THREAD_DIR)/switch.o
+      $(THREAD_DIR)/switch.o $(DEVICE_DIR)/console.o $(THREAD_DIR)/sync.o
 
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
