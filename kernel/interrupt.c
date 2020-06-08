@@ -50,21 +50,30 @@ static void general_intr_handler(uint8_t vector_id) {
     if (vector_id == 0x27 || vector_id == 0x2f) {  // IRQ7和IRQ15 伪中断
         return;
     }
-    put_str("int vector: 0x", 0x07);
-    put_int(vector_id, 16, 0x07);
-    put_char('\n', 0x07);
 
-    set_cursor_in_pos(0, 0);
+    // set_cursor_in_pos(0, 0);
+    int cur_pos = 0;
+    while (cur_pos < 320) {
+        put_char(' ', 0x07);
+        cur_pos++;
+    }
+    // set_cursor_in_pos(0, 0);
     put_str("--- excetion message begin ---\n", 0x07);
-    set_cursor_in_pos(2, 8);
+    // set_cursor_in_pos(2, 8);
     if (vector_id == 14) {  // PageFault
         int page_fault_vaddr = 0;
         asm("movl %%cr2, %0"
             : "=r"(page_fault_vaddr));  // cr2: 存放造成page_fault的地址
         put_str("\npage fault addr is ", 0x07);
         put_uint(page_fault_vaddr, 16, 0x07);
+    } else {
+        put_str("int vector: 0x", 0x07);
+        put_int(vector_id, 16, 0x07);
+        put_char('\n', 0x07);
+        put_str(intr_name[vector_id], 0x07);
+        put_char('\n', 0x07);
     }
-    put_str("--- excetion message end ---\n", 0x07);
+    put_str("\n--- excetion message end ---\n", 0x07);
     while (1)
         ;
 }

@@ -17,4 +17,7 @@ void put_uint(uint32_t x, uint32_t b, uint8_t attr);
 void set_cursor(uint32_t pos);
 void set_cursor_in_pos(uint32_t pos_x, uint32_t pos_y);
 
+void debug_printf_s(uint8_t *s, uint8_t *c);
+void debug_printf_uint(uint8_t *s, uint32_t x);
+
 // #endif

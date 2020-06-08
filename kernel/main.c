@@ -27,7 +27,9 @@ int main(void) {
 void k_thread_a(void* arg) {
     char* s = arg;
     while (1) {
+        intr_disable();
         put_str(s, 0x07);
+        intr_enable();
     }
 }
 
@@ -36,6 +38,8 @@ void k_thread_b(void* arg) {
     /* 用void*来通用表示参数,被调用的函数知道自己需要什么类型的参数,自己转换再用 */
     char* para = arg;
     while (1) {
+        intr_disable();
         put_str(para, 0x07);
+        intr_enable();
     }
 }

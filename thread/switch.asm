@@ -14,7 +14,7 @@ switch_to:
 
     ;保存上下文
     mov eax, [esp + 20] ; now
-    mov [eax], esp
+    mov [eax], esp ;将esp保存到PCB的self_kstack中（顶端）
 
     ;恢复上下文
     mov eax, [esp + 24]	; next

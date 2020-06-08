@@ -1,10 +1,11 @@
+#include "debug.h"
 #include "interrupt.h"
 #include "io.h"
 #include "print.h"
 #include "thread.h"
 #include "time.h"
 
-#define IRQ0_FREQUENCY 100                               //时间中断的频率 100Hz
+#define IRQ0_FREQUENCY 100                               //100                               //时间中断的频率 100Hz
 #define INPUT_FREQUENCY 1193180                          //计数器0的工作脉冲信号频率
 #define COUNTER0_VALUE INPUT_FREQUENCY / IRQ0_FREQUENCY  //计数器0的计数初值
 #define CONTRER0_PORT 0x40                               //计数器0的端口
@@ -39,9 +40,17 @@ void frequency_set(uint8_t counter_port,
 void intr_timer_handler() {
     struct pcb* now_thread = running_thread();
 
+    ASSERT(now_thread->stack_magic == 0x12345678);
+
     now_thread->elapsed_ticks++;
     ticks++;
+
+    // debug_printf_s("timer: ", now_thread->name);
+    // debug_printf_uint("now->ticks = ", now_thread->ticks);
+    // put_char('\n', 0x07);
+
     if (now_thread->ticks == 0) {  // time slice用完
+
         schedule();
     } else
         now_thread->ticks--;

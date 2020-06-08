@@ -1,5 +1,6 @@
 #include "thread.h"
 
+#include "debug.h"
 #include "interrupt.h"
 #include "memory.h"
 #include "print.h"
@@ -93,10 +94,11 @@ struct pcb *thread_start(char *name, int priority, thread_func func, void *func_
 
     struct pcb *thread = get_kernel_pages(1);  //pcb占一页
 
-    put_str("finish get_kernel_pages\n", 0x07);
-
     init_thread(thread, name, priority);
     thread_create(thread, func, func_arg);
+
+    ASSERT(!node_find(&thread_ready_list, &thread->general_node));
+    ASSERT(!node_find(&thread_all_list, &thread->all_list_node));
 
     list_append(&thread_ready_list, &thread->general_node);
     list_append(&thread_all_list, &thread->all_list_node);
@@ -118,6 +120,7 @@ void make_main_thread() {
     main_thread = running_thread();
     init_thread(main_thread, "main", 31);
 
+    ASSERT(!node_find(&thread_all_list, &main_thread->all_list_node));
     list_append(&thread_all_list, &main_thread->all_list_node);
 }
 
@@ -126,20 +129,26 @@ void make_main_thread() {
  * 
  */
 void schedule() {
+    // debug_printf_s("schedule here ", "start");
+
+    ASSERT(intr_get_status() == INTR_OFF);
+
     struct pcb *now = running_thread();
+
+    // put_str("\nnow -> name is ", 0x07);
+    // put_str(now->name, 0x07);
+    // put_char('\n', 0x07);
+
     if (now->status == TASK_RUNNING) {  //time slice用完
+
+        ASSERT(!node_find(&thread_ready_list, &now->general_node));
         list_append(&thread_ready_list, &now->general_node);
         now->ticks = now->priority;
         now->status = TASK_READY;
     } else {
     }
 
-    if (list_empty(&thread_ready_list)) {
-        set_cursor_in_pos(0, 0);
-        put_str("thread_ready_list is empty!\n", 0x07);
-        while (1)
-            ;
-    }
+    ASSERT(!list_empty(&thread_ready_list));
     thread_node = NULL;  // thread_tag清空
                          /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
     thread_node = list_pop(&thread_ready_list);

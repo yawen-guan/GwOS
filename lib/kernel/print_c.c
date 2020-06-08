@@ -38,3 +38,16 @@ void put_char_in_pos(uint8_t c, uint8_t attr, uint8_t pos_x, uint8_t pos_y) {
 void set_cursor_in_pos(uint32_t pos_x, uint32_t pos_y) {
     set_cursor(pos_x * 80 + pos_y);
 }
+
+void debug_printf_s(uint8_t *s, uint8_t *c) {
+    put_char('\n', 0x07);
+    put_str(s, 0x07);
+    put_str(c, 0x07);
+    put_char('\n', 0x07);
+}
+void debug_printf_uint(uint8_t *s, uint32_t x) {
+    put_char('\n', 0x07);
+    put_str(s, 0x07);
+    put_uint(x, 10, 0x07);
+    put_char('\n', 0x07);
+}
