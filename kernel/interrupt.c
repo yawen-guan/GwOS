@@ -126,7 +126,7 @@ void pic_init() {
 
     // 设置中断屏蔽寄存器IMR
     //  outb(PIC_M_DATA, 0xfe); //  1111_1110b
-    outb(PIC_M_DATA, 0xfe);  //  1111_1011b
+    outb(PIC_M_DATA, 0xfc);  //  1111_1001b
     outb(PIC_S_DATA, 0xff);  //  1111_1111b
 
     put_str("\npic_init done\n", 0x07);
