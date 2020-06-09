@@ -9,7 +9,7 @@ LDFLAGS = -m elf_i386 # -shared
 
 INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread -I ../device -I ../include
 
-PROGRAMS = tss.o process.o
+PROGRAMS = tss.o # process.o
 
 SUBDIRS = ./actualuserprogs
 

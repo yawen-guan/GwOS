@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "global.h"
 #include "interrupt.h"
+#include "print.h"
 
 /**
  * @brief 初始化io环状队列
@@ -81,6 +82,7 @@ char ioq_getchar(struct ioqueue* q) {
         ioq_wait(&q->consumer);
         lock_release(&q->lock);
     }
+
     char c = q->buf[q->tail];
     q->tail = get_next_pos(q->tail);
 
@@ -98,6 +100,15 @@ char ioq_getchar(struct ioqueue* q) {
  */
 void ioq_putchar(struct ioqueue* q, char c) {
     ASSERT(intr_get_status() == INTR_OFF);
+
+    // put_str("ioq_putchar ", 0x07);
+    // put_char(c, 0x07);
+    // put_char('\n', 0x07);
+
+    // if (c == '\r') {
+    //     // inputing = false;
+    //     debug_printf_s("ioq_putchar ", "c = r");
+    // }
 
     while (is_ioq_full(q) == true) {
         lock_acquire(&q->lock);

@@ -53,6 +53,9 @@ void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
         }
         vaddr_start = now->userprog_vaddr.vaddr_start + idx_bit_start * PG_SIZE;
     }
+
+    ASSERT((uint32_t)vaddr_start < (0xc0000000 - PG_SIZE));
+
     return (void *)vaddr_start;
 }
 
@@ -208,7 +211,7 @@ void *get_one_page(enum pool_flag pf, uint32_t vaddr) {
     }
     //其他情况不允许
     else {
-        ASSERT(0);
+        PANIC("get one page: panic");
     }
 
     void *page_phyaddr = palloc(p);
@@ -265,7 +268,7 @@ void mem_pool_init(uint32_t all_mem) {
     user_pool.pool_bitmap.len = bitmap_len_user;
     user_pool.pool_bitmap.bits = (void *)(MEM_BITMAP_BASE + bitmap_len_kernel);
     bitmap_init(&user_pool.pool_bitmap);
-    lock_init(&kernel_pool.lock);
+    lock_init(&user_pool.lock);
 
     //put_str("      kernel_pool_bitmap_start:", 0x07);
     //put_uint((int)kernel_pool.pool_bitmap.bits, 16, 0x07);

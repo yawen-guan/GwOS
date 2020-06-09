@@ -80,10 +80,13 @@ struct gdt_desc {
 
 // ----- usage -----
 #define bool int
-#define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
+// #define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
 #define true 1
 #define false 0
 #define NULL ((void *)0)
 
 // ----- page -----
 #define PG_SIZE 4096
+
+// ----- main -----
+// extern bool inputing;

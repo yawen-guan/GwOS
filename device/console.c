@@ -1,6 +1,7 @@
 #include "console.h"
 
 #include "print.h"
+#include "string.h"
 #include "sync.h"
 #include "thread.h"
 

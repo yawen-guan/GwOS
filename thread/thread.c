@@ -140,8 +140,12 @@ void schedule() {
     // put_str(now->name, 0x07);
     // put_char('\n', 0x07);
 
-    if (now->status == TASK_RUNNING) {  //time slice用完
+    // if (list_empty(&thread_ready_list) == true && now->status == TASK_RUNNING) {
+    //     now->ticks = now->priority;
+    //     return;
+    // }
 
+    if (now->status == TASK_RUNNING) {  //time slice用完
         ASSERT(!node_find(&thread_ready_list, &now->general_node));
         list_append(&thread_ready_list, &now->general_node);
         now->ticks = now->priority;
@@ -156,7 +160,7 @@ void schedule() {
     struct pcb *next = elem2entry(struct pcb, general_node, thread_node);
     next->status = TASK_RUNNING;
 
-    process_activate(next);
+    // process_activate(next);
 
     switch_to(now, next);
 }

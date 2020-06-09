@@ -25,7 +25,6 @@ OBJFILE = main.o init.o debug.o interrupt.o \
       $(LIB_DIR)/string.o $(THREAD_DIR)/thread.o $(KERNEL_LIB_DIR)/list.o \
       $(THREAD_DIR)/switch.o $(DEVICE_DIR)/console.o $(THREAD_DIR)/sync.o \
 	  $(DEVICE_DIR)/keyboard.o $(DEVICE_DIR)/ioqueue.o $(USERPROG_DIR)/tss.o \
-	  $(USERPROG_DIR)/process.o \
 	  $(ACTUAL_USER_DIR)/prog1.o $(ACTUAL_USER_DIR)/prog2.o \
 	  $(ACTUAL_USER_DIR)/prog3.o $(ACTUAL_USER_DIR)/prog4.o \
 	  $(ACTUAL_USER_DIR)/common.o

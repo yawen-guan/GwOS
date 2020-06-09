@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include "global.h"
+#include "ioqueue.h"
+
+extern bool ouch;
+
 /**
  * @brief 键盘中断处理函数
  */
@@ -14,4 +19,9 @@ static void intr_keyboard_handler();
  */
 void keyboard_init();
 
-// #endif
+/**
+ * @brief 从键盘缓冲区读入一个字符
+ * 
+ * @return char 
+ */
+char keyboard_getchar();
