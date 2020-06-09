@@ -1,4 +1,4 @@
-SUBDIRS=./device ./thread ./lib ./boot ./kernel 
+SUBDIRS=./device ./thread ./lib ./boot ./userprog ./kernel 
 IMG = GwOS.img
 BOOTDIR = ./boot
 KERDIR = ./kernel

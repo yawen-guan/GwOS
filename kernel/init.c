@@ -7,6 +7,7 @@
 #include "print.h"
 #include "thread.h"
 #include "timer.h"
+#include "tss.h"
 
 void init_all() {
     put_str("\ninit all\n", 0x07);
@@ -16,4 +17,5 @@ void init_all() {
     timer_init();
     console_init();
     keyboard_init();
+    tss_init();
 }

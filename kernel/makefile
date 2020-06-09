@@ -7,11 +7,12 @@ ASFLAGS = -felf32
 LD = ld
 LDFLAGS = -m elf_i386  
 
-INCLUDES = -I ../lib -I ../lib/kernel -I ./include -I ../device -I ../thread
+INCLUDES = -I ../lib -I ../lib/kernel -I ./include -I ../device -I ../thread -I ../userprog
 KERNEL_LIB_DIR = ../lib/kernel
 LIB_DIR = ../lib
 DEVICE_DIR = ../device
 THREAD_DIR = ../thread
+USERPROG_DIR = ../userprog
 PROGRAM = main.o init.o interrupt.o kernel.o memory.o debug.o
 # OBJFILE = # main.o init.o $(THREAD_DIR)/thread.o $(THREAD_DIR)/switch.o $(DEVICE_DIR)/timer.o $(DEVICE_DIR)/keyboard.o interrupt.o memory.o $(KERNEL_LIB_DIR)/bitmap.o $(LIB_DIR)/string.o $(KERNEL_LIB_DIR)/print_c.o $(KERNEL_LIB_DIR)/print_asm.o kernel.o
 OBJFILE = main.o init.o debug.o interrupt.o \
@@ -20,7 +21,7 @@ OBJFILE = main.o init.o debug.o interrupt.o \
       memory.o $(KERNEL_LIB_DIR)/bitmap.o \
       $(LIB_DIR)/string.o $(THREAD_DIR)/thread.o $(KERNEL_LIB_DIR)/list.o \
       $(THREAD_DIR)/switch.o $(DEVICE_DIR)/console.o $(THREAD_DIR)/sync.o \
-	  $(DEVICE_DIR)/keyboard.o $(DEVICE_DIR)/ioqueue.o
+	  $(DEVICE_DIR)/keyboard.o $(DEVICE_DIR)/ioqueue.o $(USERPROG_DIR)/tss.o
 
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错

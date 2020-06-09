@@ -1,11 +1,12 @@
 ;----------- loader, kernel ------------
 LOADER_BASE_ADDR equ 0x900
+LOADER_STACK_TOP equ LOADER_BASE_ADDR
 LOADER_START_SECTOR equ 0x1
 
 KERNEL_COM_BASE_ADDR equ 0x7_0000
 KERNEL_START_SECTOR equ 0x8
 KERNEL_ENTRY_POINT equ 0xc000_1500
-KERNEL_SECTOR_CNT equ 50
+KERNEL_SECTOR_CNT equ 100
 
 ;----------- Page Table ------------
 
