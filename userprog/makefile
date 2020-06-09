@@ -7,11 +7,16 @@ ASFLAGS = -felf32
 LD = ld
 LDFLAGS = -m elf_i386 # -shared
 
-INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread
+INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread -I ../device -I ../include
 
-PROGRAMS = tss.o
+PROGRAMS = tss.o process.o
+
+SUBDIRS = ./actualuserprogs
 
 all: $(PROGRAMS)
+	for dir in $(SUBDIRS); do \
+          $(MAKE) -C $$dir; \
+        done
 	# $(LD) $(LDFLAGS) print_asm.o print_c.o -o print.o
 
 %.o : %.asm
@@ -26,3 +31,6 @@ all: $(PROGRAMS)
 .PHONY : clean
 clean :
 	-rm -f *.o *.bin *.com *.elf *.s 
+	for dir in $(SUBDIRS); do \
+		$(MAKE) clean -C $$dir; \
+	done

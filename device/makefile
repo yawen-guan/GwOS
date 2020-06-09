@@ -7,7 +7,7 @@ ASFLAGS = -felf32
 LD = ld
 LDFLAGS = -m elf_i386 # -shared
 
-INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread
+INCLUDES = -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread -I ../include
 
 PROGRAMS = keyboard.o timer.o console.o ioqueue.o
 

@@ -1,7 +1,10 @@
 #include "memory.h"
 
+#include "debug.h"
 #include "print.h"
 #include "string.h"
+#include "sync.h"
+#include "thread.h"
 
 #define PG_SIZE 4096                  // 4KB/page
 #define MEM_BITMAP_BASE 0xc009a000    // 支持四页的位图，最大可管理512MB的物理内存
@@ -15,6 +18,7 @@ struct pool {
     struct bitmap pool_bitmap;
     uint32_t phy_addr_start;  // 该内存池管理的物理内存起始地址
     uint32_t pool_size;       //  该内存池的容量（字节数）
+    struct lock lock;
 };
 
 struct pool kernel_pool, user_pool;
@@ -26,11 +30,11 @@ struct virtual_addr kernel_vaddr;
  * @return 成功：返回虚拟页的起始地址； 失败：返回NULL
  */
 void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
-    put_str("\nvaddr_get start\n", 0x07);
+    //put_str("\nvaddr_get start\n", 0x07);
 
     int vaddr_start = 0, idx_bit_start = -1;
     uint32_t count = 0;
-    if (pf == PF_KERNEL) {
+    if (pf == PF_KERNEL) {  //kernel_pool
         idx_bit_start = bitmap_apply_cnt(&kernel_vaddr.vaddr_bitmap, cnt);
         if (idx_bit_start == -1) return NULL;
 
@@ -39,7 +43,15 @@ void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
             count++;
         }
         vaddr_start = kernel_vaddr.vaddr_start + idx_bit_start * PG_SIZE;
-    } else {
+    } else {  // user_pool
+        struct pcb *now = running_thread();
+        idx_bit_start = bitmap_apply_cnt(&now->userprog_vaddr.vaddr_bitmap, cnt);
+        if (idx_bit_start == -1) return NULL;
+        while (count < cnt) {
+            bitmap_set_idx(&now->userprog_vaddr.vaddr_bitmap, idx_bit_start + count, 1);
+            count++;
+        }
+        vaddr_start = now->userprog_vaddr.vaddr_start + idx_bit_start * PG_SIZE;
     }
     return (void *)vaddr_start;
 }
@@ -144,7 +156,7 @@ void *malloc_page(enum pool_flag pf, uint32_t cnt) {
  * @return 成功：返回虚拟地址；失败：返回NULL
  */
 void *get_kernel_pages(uint32_t cnt) {
-    put_str("\nget_kernel_pages start\n", 0x07);
+    //put_str("\nget_kernel_pages start\n", 0x07);
     void *vaddr = malloc_page(PF_KERNEL, cnt);
     if (vaddr != NULL) {
         memset(vaddr, 0, cnt * PG_SIZE);
@@ -153,11 +165,79 @@ void *get_kernel_pages(uint32_t cnt) {
 }
 
 /**
+ * @brief 从用户内存池中申请cnt页
+ * 
+ * @return 成功：返回虚拟地址；失败：返回NULL
+ */
+void *get_user_pages(uint32_t cnt) {
+    lock_acquire(&user_pool.lock);
+    void *vaddr = malloc_page(PF_USER, cnt);
+    if (vaddr != NULL) {
+        memset(vaddr, 0, cnt * PG_SIZE);
+    }
+
+    lock_release(&user_pool.lock);
+    return vaddr;
+}
+
+/**
+ * @brief 在pf对应的内存池中申请一页内存，并将虚拟地址vaddr映射到这一页（指定虚拟地址）
+ * 
+ * @param pf 
+ * @param vaddr 
+ * @return void* 
+ */
+void *get_one_page(enum pool_flag pf, uint32_t vaddr) {
+    struct pool *p = (pf == PF_KERNEL) ? &kernel_pool : &user_pool;
+    lock_acquire(&p->lock);
+
+    struct pcb *now = running_thread();
+    int32_t idx = -1;
+
+    //用户进程
+    if (now->pg_dir != NULL && pf == PF_USER) {
+        ASSERT(vaddr > now->userprog_vaddr.vaddr_start);
+        idx = (vaddr - now->userprog_vaddr.vaddr_start) / PG_SIZE;
+        bitmap_set_idx(&now->userprog_vaddr.vaddr_bitmap, idx, 1);
+    }
+    //内核线程
+    else if (now->pg_dir == NULL && pf == PF_KERNEL) {
+        ASSERT(vaddr > kernel_vaddr.vaddr_start);
+        idx = (vaddr - kernel_vaddr.vaddr_start) / PG_SIZE;
+        bitmap_set_idx(&kernel_vaddr.vaddr_bitmap, idx, 1);
+    }
+    //其他情况不允许
+    else {
+        ASSERT(0);
+    }
+
+    void *page_phyaddr = palloc(p);
+    if (page_phyaddr == NULL) {
+        lock_release(&p->lock);
+        return NULL;
+    }
+    page_table_add((void *)vaddr, page_phyaddr);
+
+    lock_release(&p->lock);
+    return (void *)vaddr;
+}
+
+/**
+ * @brief 将虚拟地址转换为物理地址
+ * 
+ * @return uint32_t 
+ */
+uint32_t addr_vir2phy(uint32_t vaddr) {
+    uint32_t *pte = pte_ptr(vaddr);
+    return ((*pte & 0xFFFFF000) + (vaddr & 0x00000FFF));
+}
+
+/**
  * @brief 初始化内存池
  * 
  */
 void mem_pool_init(uint32_t all_mem) {
-    put_str("\nmemory pool init start\n", 0x07);
+    //put_str("\nmemory pool init start\n", 0x07);
     uint32_t page_table_size = 256 * PG_SIZE;        // 页目录表 +　页表　共占用的空间
     uint32_t mem_used = page_table_size + 0x100000;  // 　页目录表＋页表＋低端１MB
     uint32_t mem_free = all_mem - mem_used;
@@ -177,6 +257,7 @@ void mem_pool_init(uint32_t all_mem) {
     kernel_pool.pool_bitmap.len = bitmap_len_kernel;
     kernel_pool.pool_bitmap.bits = (void *)MEM_BITMAP_BASE;
     bitmap_init(&kernel_pool.pool_bitmap);
+    lock_init(&kernel_pool.lock);
 
     //用户内存池
     user_pool.phy_addr_start = user_pool_start;
@@ -184,17 +265,18 @@ void mem_pool_init(uint32_t all_mem) {
     user_pool.pool_bitmap.len = bitmap_len_user;
     user_pool.pool_bitmap.bits = (void *)(MEM_BITMAP_BASE + bitmap_len_kernel);
     bitmap_init(&user_pool.pool_bitmap);
+    lock_init(&kernel_pool.lock);
 
-    put_str("      kernel_pool_bitmap_start:", 0x07);
-    put_uint((int)kernel_pool.pool_bitmap.bits, 16, 0x07);
-    put_str(" kernel_pool_phy_addr_start:", 0x07);
-    put_int(kernel_pool.phy_addr_start, 16, 0x07);
-    put_str("\n", 0x07);
-    put_str("      user_pool_bitmap_start:", 0x07);
-    put_uint((int)user_pool.pool_bitmap.bits, 16, 0x07);
-    put_str(" user_pool_phy_addr_start:", 0x07);
-    put_int(user_pool.phy_addr_start, 16, 0x07);
-    put_str("\n", 0x07);
+    //put_str("      kernel_pool_bitmap_start:", 0x07);
+    //put_uint((int)kernel_pool.pool_bitmap.bits, 16, 0x07);
+    //put_str(" kernel_pool_phy_addr_start:", 0x07);
+    //put_int(kernel_pool.phy_addr_start, 16, 0x07);
+    //put_str("\n", 0x07);
+    //put_str("      user_pool_bitmap_start:", 0x07);
+    //put_uint((int)user_pool.pool_bitmap.bits, 16, 0x07);
+    //put_str(" user_pool_phy_addr_start:", 0x07);
+    //put_int(user_pool.phy_addr_start, 16, 0x07);
+    //put_str("\n", 0x07);
 
     // 内核虚拟地址(堆)
     kernel_vaddr.vaddr_bitmap.len = bitmap_len_kernel;
@@ -202,17 +284,17 @@ void mem_pool_init(uint32_t all_mem) {
     kernel_vaddr.vaddr_start = KERNEL_HEAP_START;
     bitmap_init(&kernel_vaddr.vaddr_bitmap);
 
-    put_uint(MEM_BITMAP_BASE, 16, 0x07);
-    put_char('\n', 0x07);
-    put_uint(MEM_BITMAP_BASE, 10, 0x07);
-    put_str("kernel_vaddr.vaddr_bitmap.start:", 0x07);
-    put_uint((int)kernel_vaddr.vaddr_bitmap.bits, 16, 0x07);
-    put_str("\n", 0x07);
-    put_str("kernel_vaddr.vaddr_start:", 0x07);
-    put_uint((int)kernel_vaddr.vaddr_start, 16, 0x07);
-    put_str("\n", 0x07);
+    //put_uint(MEM_BITMAP_BASE, 16, 0x07);
+    //put_char('\n', 0x07);
+    //put_uint(MEM_BITMAP_BASE, 10, 0x07);
+    //put_str("kernel_vaddr.vaddr_bitmap.start:", 0x07);
+    //put_uint((int)kernel_vaddr.vaddr_bitmap.bits, 16, 0x07);
+    //put_str("\n", 0x07);
+    //put_str("kernel_vaddr.vaddr_start:", 0x07);
+    //put_uint((int)kernel_vaddr.vaddr_start, 16, 0x07);
+    //put_str("\n", 0x07);
 
-    put_str("\nmem pool init done\n", 0x07);
+    //put_str("\nmem pool init done\n", 0x07);
 }
 
 /**

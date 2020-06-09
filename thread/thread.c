@@ -4,6 +4,7 @@
 #include "interrupt.h"
 #include "memory.h"
 #include "print.h"
+#include "process.h"
 #include "string.h"
 
 #define PG_SIZE 4096  // 4KB/page
@@ -90,7 +91,7 @@ void init_thread(struct pcb *pthread, char *name, int priority) {
  * @return struct pcb* 
  */
 struct pcb *thread_start(char *name, int priority, thread_func func, void *func_arg) {
-    put_str("thread_start\n", 0x07);
+    //put_str("thread_start\n", 0x07);
 
     struct pcb *thread = get_kernel_pages(1);  //pcb占一页
 
@@ -108,7 +109,7 @@ struct pcb *thread_start(char *name, int priority, thread_func func, void *func_
     //              : "g"(thread->self_kstack)
     //              : "memory");
 
-    put_str("thread_end\n", 0x07);
+    //put_str("thread_end\n", 0x07);
     return thread;
 }
 
@@ -154,6 +155,9 @@ void schedule() {
     thread_node = list_pop(&thread_ready_list);
     struct pcb *next = elem2entry(struct pcb, general_node, thread_node);
     next->status = TASK_RUNNING;
+
+    process_activate(next);
+
     switch_to(now, next);
 }
 
@@ -162,14 +166,14 @@ void schedule() {
  * 
  */
 void thread_init() {
-    put_str("thread_init start\n", 0x07);
+    //put_str("thread_init start\n", 0x07);
 
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
 
     make_main_thread();
 
-    put_str("thread_init done\n", 0x07);
+    //put_str("thread_init done\n", 0x07);
 }
 
 /**

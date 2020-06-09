@@ -62,4 +62,20 @@ void* get_kernel_pages(uint32_t cnt);
  */
 void mem_init();
 
+/**
+ * @brief 在pf对应的内存池中申请一页内存，并将虚拟地址vaddr映射到这一页（指定虚拟地址）
+ * 
+ * @param pf 
+ * @param vaddr 
+ * @return void* 
+ */
+void* get_one_page(enum pool_flag pf, uint32_t vaddr);
+
+/**
+ * @brief 将虚拟地址转换为物理地址
+ * 
+ * @return uint32_t 
+ */
+uint32_t addr_vir2phy(uint32_t vaddr);
+
 // #endif

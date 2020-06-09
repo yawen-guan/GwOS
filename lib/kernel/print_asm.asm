@@ -7,8 +7,10 @@ section .text
 
 global put_char
 global put_char_pos
+global get_char_pos
 global put_str
 global set_cursor
+global get_cursor_pos
 
 extern put_int
 
@@ -181,7 +183,77 @@ set_cursor: ;(pos)
     popad
     ret 
 
+get_char_pos: ;(pos)
+    ; pushad  ;save 32bit registers(压入4*8=32B)
+    push ecx 
+    push edx 
+    push ebx 
+    push esp 
+    push ebp
+    push esi 
+    push edi 
 
+    mov ax, SELECTOR_VIDEO
+    mov gs, ax  ;gs = 显存段选择子
 
+    ;将位置存入bx 
+    mov eax, [esp + 32] ;第1个参数, pos
+    mov bx, ax
+
+    ;打印字符
+    ; mov ecx, [esp + 36] ;参数c（pushad 32B, 返回地址4B）
+
+    shl bx, 1
+    mov byte ah, [gs:bx] ;字符
+    inc bx 
+    mov byte al, [gs:bx] ;字符属性
+    shr bx, 1
+    inc bx 
+    
+    pop edi 
+    pop esi 
+    pop ebp
+    pop esp 
+    pop ebx 
+    pop edx 
+    pop ecx 
+    ; popad
+    ret
+
+get_cursor_pos:
+    push ecx 
+    push edx 
+    push ebx 
+    push esp 
+    push ebp
+    push esi 
+    push edi 
+
+    mov ax, SELECTOR_VIDEO
+    mov gs, ax  ;gs = 显存段选择子
+
+    ;----- 获取光标位置（下一个可打印字符的位置） -----
+    ;高8位
+    mov dx, 0x03d4  ;CRT controller寄存器组的Address Register端口地址
+    mov al, 0x0e    ;curosr location high register的索引为0x0e
+    out dx, al      ;对应的data register改变
+    mov dx, 0x03d5  ;CRT controller寄存器组的Data Register端口地址
+    in al, dx       ;读出光标位置的高8位
+    mov ah, al
+    ;低8位
+    mov dx, 0x03d4
+    mov al, 0x0f
+    out dx, al
+    mov dx, 0x03d5
+    in al, dx 
+    
+    pop edi 
+    pop esi 
+    pop ebp
+    pop esp 
+    pop ebx 
+    pop edx 
+    pop ecx 
+    ret
 
 

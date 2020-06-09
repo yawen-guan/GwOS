@@ -43,6 +43,30 @@ void console_put_str(char *s, uint8_t attr) {
 }
 
 /**
+ * @brief 在终端输出字符
+ * 
+ * @param c 
+ * @param attr 
+ */
+void console_put_char(char c, uint8_t attr) {
+    console_acquire();
+    put_char(c, attr);
+    console_release();
+}
+
+/**
+ * @brief 获取屏幕上某个字符
+ * 
+ * @param pos
+ */
+uint32_t console_get_char_pos(uint16_t pos) {
+    console_acquire();
+    uint32_t c = get_char_pos(pos);
+    console_release();
+    return c;
+}
+
+/**
  * @brief 在终端输出整数
  * 
  * @param x 
@@ -52,5 +76,31 @@ void console_put_str(char *s, uint8_t attr) {
 void console_put_int(int32_t x, uint32_t b, uint8_t attr) {
     console_acquire();
     put_int(x, b, attr);
+    console_release();
+}
+
+/**
+ * @brief 在终端特定位置输出字符
+ * 
+ * @param c 
+ * @param attr 
+ * @param pos_x 
+ * @param pos_y 
+ */
+void console_put_char_in_pos(char c, uint8_t attr, uint8_t pos_x, uint8_t pos_y) {
+    console_acquire();
+    put_char_in_pos(c, attr, pos_x, pos_y);
+    console_release();
+}
+
+void console_put_str_in_pos(char *s, uint8_t attr, uint8_t pos_x, uint8_t pos_y) {
+    console_acquire();
+    uint32_t len = strlen(s);
+    uint32_t pos = pos_x;
+    pos = pos * 80 + pos_y;
+    for (int i = 0; i < len; i++) {
+        put_char_pos(s[i], attr, pos);
+        pos++;
+    }
     console_release();
 }

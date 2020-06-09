@@ -40,7 +40,7 @@ void idt_init() {
         idt[i].attribute = IDT_DESC_ATTR_DPL0;
         idt[i].func_offset_high_16bit = (uint32_t)intr_entry_table[i] & 0xFFFF0000;
     }
-    put_str("\nidt_init done\n", 0x07);
+    //put_str("\nidt_init done\n", 0x07);
 }
 
 /**
@@ -129,14 +129,14 @@ void pic_init() {
     outb(PIC_M_DATA, 0xfc);  //  1111_1001b
     outb(PIC_S_DATA, 0xff);  //  1111_1111b
 
-    put_str("\npic_init done\n", 0x07);
+    //put_str("\npic_init done\n", 0x07);
 }
 
 /**
  * @brief 中断初始化
 */
 void interrupt_init() {
-    put_str("\ninterrupt init start\n", 0x07);
+    //put_str("\ninterrupt init start\n", 0x07);
     idt_init();
     intr_function_init();
     pic_init();
@@ -147,7 +147,7 @@ void interrupt_init() {
                  :
                  : "m"(idt_operand));
 
-    put_str("\ninterrupt init done\n", 0x07);
+    //put_str("\ninterrupt init done\n", 0x07);
 }
 
 /**

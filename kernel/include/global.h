@@ -71,7 +71,16 @@ struct gdt_desc {
 #define IDT_DESC_ATTR_DPL0 ((IDT_DESC_P << 7) + (IDT_DESC_DPL0 << 5) + IDT_DESC_32_TYPE)
 #define IDT_DESC_ATTR_DPL3 ((IDT_DESC_P << 7) + (IDT_DESC_DPL3 << 5) + IDT_DESC_32_TYPE)
 
+//----- eflag -----
+#define EFLAGS_MBS (1 << 1)      // 此项必须要设置
+#define EFLAGS_IF_1 (1 << 9)     // if为1,开中断
+#define EFLAGS_IF_0 0            // if为0,关中断
+#define EFLAGS_IOPL_3 (3 << 12)  // IOPL3,用于测试用户程序在非系统调用下进行IO
+#define EFLAGS_IOPL_0 (0 << 12)  // IOPL0
+
+// ----- usage -----
 #define bool int
+#define DIV_ROUND_UP(X, STEP) ((X + STEP - 1) / (STEP))
 #define true 1
 #define false 0
 #define NULL ((void *)0)

@@ -1,3 +1,4 @@
+#include "console.h"
 #include "debug.h"
 #include "interrupt.h"
 #include "io.h"
@@ -15,6 +16,8 @@
 #define PIT_CONTROL_PORT 0x43                            //控制字寄存器的端口
 
 uint32_t ticks;  //自中断开启以来，内核总共的tick数
+
+uint32_t FHL_count;
 
 /**
  * @brief 设置时间中断的频率
@@ -38,6 +41,10 @@ void frequency_set(uint8_t counter_port,
  * 
  */
 void intr_timer_handler() {
+    FHL_count = (FHL_count + 1) % 3;
+    char FHL_char = (FHL_count == 0) ? '|' : (FHL_count == 1) ? '/' : '\\';
+    put_char_in_pos(FHL_char, 0x0B, 24, 79);
+
     struct pcb* now_thread = running_thread();
 
     ASSERT(now_thread->stack_magic == 0x12345678);
@@ -62,6 +69,8 @@ void intr_timer_handler() {
  */
 void timer_init() {
     put_str("timer_init start\n", 0x07);
+    FHL_count = 0;
+
     frequency_set(CONTRER0_PORT, COUNTER0_NO, READ_WRITE_LATCH, COUNTER_MODE, COUNTER0_VALUE);
     register_handler(0x20, intr_timer_handler);
     put_str("timer_init done\n", 0x07);
