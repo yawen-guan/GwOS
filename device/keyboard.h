@@ -8,6 +8,8 @@
 
 extern bool ouch;
 
+extern struct ioqueue keyboard_ioq;
+
 /**
  * @brief 键盘中断处理函数
  */

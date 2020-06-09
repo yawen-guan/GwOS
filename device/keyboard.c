@@ -118,7 +118,7 @@ static char keymap[][2] = {
 static void intr_keyboard_handler(void) {
     // ouch
     struct pcb* now = running_thread();
-    if (strcmp(now->name, "main") != 0) {
+    if (now->name[0] == 'r' && now->name[1] == 'u' && now->name[2] == 'n') {
         console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
         ouch = true;
     }

@@ -1,5 +1,6 @@
 #include "thread.h"
 
+#include "console.h"
 #include "debug.h"
 #include "interrupt.h"
 #include "memory.h"
@@ -151,16 +152,29 @@ void schedule() {
         now->ticks = now->priority;
         now->status = TASK_READY;
     } else {
+        //等待某事件发生
     }
 
+    // debug_printf_s("schedule ", "changed status");
+
     ASSERT(!list_empty(&thread_ready_list));
-    thread_node = NULL;  // thread_tag清空
-                         /* 将thread_ready_list队列中的第一个就绪线程弹出,准备将其调度上cpu. */
+    thread_node = NULL;
     thread_node = list_pop(&thread_ready_list);
+
+    // debug_printf_s("schedule ", "list_pop finished");
+
     struct pcb *next = elem2entry(struct pcb, general_node, thread_node);
     next->status = TASK_RUNNING;
 
-    // process_activate(next);
+    // debug_printf_s("schedule ", "process_active start");
+
+    // put_str("\nnext -> name is ", 0x07);
+    // put_str(next->name, 0x07);
+    // put_char('\n', 0x07);
+
+    process_activate(next);
+
+    // console_put_str("process_activated\n", 0x07);
 
     switch_to(now, next);
 }

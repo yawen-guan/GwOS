@@ -9,9 +9,9 @@ gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/inc
 # ld -m elf_i386  print_asm.o print_c.o -o print.o
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/device'
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/thread'
-gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include thread.c -o thread.o
-nasm -felf32 -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include switch.asm -o switch.o
-gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include sync.c -o sync.o
+gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include -I ../device thread.c -o thread.o
+nasm -felf32 -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include -I ../device switch.asm -o switch.o
+gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel  -I ../include -I ../device sync.c -o sync.o
 # ld -m elf_i386  print_asm.o print_c.o -o print.o
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/thread'
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/lib'
@@ -35,6 +35,7 @@ nasm -I ./include loader.asm -o loader.com
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/boot'
 make[1]: Entering directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/userprog'
 gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread -I ../device -I ../include tss.c -o tss.o
+gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../kernel/include -I ../lib -I ../lib/kernel -I ../thread -I ../device -I ../include process.c -o process.o
 for dir in ./actualuserprogs; do \
           make -C $dir; \
         done
@@ -55,7 +56,7 @@ gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../lib -I ../
 nasm -felf32 -I ../lib -I ../lib/kernel -I ./include -I ../device -I ../thread -I ../userprog -I ../include kernel.asm -o kernel.o
 gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../lib -I ../lib/kernel -I ./include -I ../device -I ../thread -I ../userprog -I ../include memory.c -o memory.o
 gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ../lib -I ../lib/kernel -I ./include -I ../device -I ../thread -I ../userprog -I ../include debug.c -o debug.o
-ld -m elf_i386   main.o init.o debug.o interrupt.o ../device/timer.o kernel.o ../lib/kernel/print_c.o ../lib/kernel/print_asm.o memory.o ../lib/kernel/bitmap.o ../lib/string.o ../thread/thread.o ../lib/kernel/list.o ../thread/switch.o ../device/console.o ../thread/sync.o ../device/keyboard.o ../device/ioqueue.o ../userprog/tss.o ../userprog/actualuserprogs/prog1.o ../userprog/actualuserprogs/prog2.o ../userprog/actualuserprogs/prog3.o ../userprog/actualuserprogs/prog4.o ../userprog/actualuserprogs/common.o -Ttext 0xc0001500 -e main -o kernel.com
+ld -m elf_i386   main.o init.o debug.o interrupt.o ../device/timer.o kernel.o ../lib/kernel/print_c.o ../lib/kernel/print_asm.o memory.o ../lib/kernel/bitmap.o ../lib/string.o ../thread/thread.o ../lib/kernel/list.o ../thread/switch.o ../device/console.o ../thread/sync.o ../device/keyboard.o ../device/ioqueue.o ../userprog/tss.o ../userprog/process.o ../userprog/actualuserprogs/prog1.o ../userprog/actualuserprogs/prog2.o ../userprog/actualuserprogs/prog3.o ../userprog/actualuserprogs/prog4.o ../userprog/actualuserprogs/common.o -Ttext 0xc0001500 -e main -o kernel.com
 make[1]: Leaving directory '/media/gwen/DATA/A_GW/Courses/Operating_system/labs/lab4_p/lab4/kernel'
 dd if=./boot/mbr.com of=GwOS.img seek=0 conv=notrunc
 dd if=./boot/loader.com of=GwOS.img seek=1 conv=notrunc

@@ -7,10 +7,11 @@
 #include "print.h"
 #include "process.h"
 #include "string.h"
+#include "sync.h"
 #include "thread.h"
 
 #define SCREEN_SIZE 2000
-#define COMMAND_SIZE 20
+#define COMMAND_SIZE 50
 
 // void k_thread_a(void* arg);  //一定要先声明后调用！不然虚拟地址会出错
 // void k_thread_b(void* arg);
@@ -18,8 +19,13 @@
 // void u_prog_a(void);
 // void u_prog_b(void);
 // int test_var_a = 0, test_var_b = 0;
+void terminal(void *arg);
+void userprog_init();
+void run_prog1(void *arg);
+void run_prog2(void *arg);
+void run_prog3(void *arg);
+void run_prog4(void *arg);
 
-void clear();
 void saves_creen();
 void recover_screen();
 
@@ -30,82 +36,42 @@ extern void prog4();
 
 uint32_t screen_buf[SCREEN_SIZE];
 uint16_t cursor_pos;
+char *msg_help =
+    "Welcome to GwShell. Internal commands are as following.\n\r"
+    "help               show help information.\n\r"
+    "ls                 list the information of user programs.\n\r"
+    "clr                clear the screen.\n\r"
+    "exec               run the several user program at the same time.\n\r"
+    "                   Not limit to one program.\n\r"
+    "exit               exit the current GwShell.\n\r";
+char *msg_ls =
+    "ID      FILENAME       TYPE\n\r"
+    "1       prog1          com\n\r"
+    "2       prog2          com\n\r"
+    "3       prog3          com\n\r"
+    "4       prog4          com\n\r";
+
+extern struct ioqueue keyboard_ioq;
+
 // bool inputing;
-// char command[COMMAND_SIZE];
+char command[COMMAND_SIZE];
+
+static struct lock prog1_lock;
+static struct lock prog2_lock;
+static struct lock prog3_lock;
+static struct lock prog4_lock;
+
+static struct lock prog_lock[5];
 // uint32_t command_len;
 
 int main(void) {
-    // put_str("I am kernel\n", 0x07);
+    put_str("I am kernel\n", 0x07);
 
     init_all();
-    // put_str("here\n", 0x07);
 
-    // thread_start("idle", 5, idle, NULL);
-    // thread_start("terminal", 30, i)
+    userprog_init();
+    thread_start("terminal", 30, terminal, NULL);
 
-    // console_acquire();
-    clear();
-    cursor_pos = 0;
-
-    // // inputing = false;
-    // // while (1) {
-    // console_put_str("\n\rGwShell: ", 0x0E);
-
-    // for(int i = 0; i < len; i ++){
-
-    // }
-    // // char c = keyboard_getchar();
-    // thread_start("readin", 20, readin, NULL);
-
-    // while (1)
-    // ;
-    // console_acquire();
-    // inputing = true;
-
-    // console_release();
-    // int len = 0;
-    // while (inputing == true && len < COMMAND_SIZE) {
-    //     //     // len++;
-    //     command[len++] = keyboard_getchar();
-    // }
-    // command[len] = 0;
-    // inputing = false;
-    // console_release();
-    // debug_printf_s("command = ", command);
-
-    // if (strcmp(command, "help") == 0) {
-    // } else if (strcmp(command, "ls") == 0) {
-    // } else if (strcmp(command, "exec") == 0) {
-    // } else if (strcmp(command, "clear") == 0) {
-    // }
-    // }
-
-    // console_release();
-
-    // while (1) {
-
-    // }
-
-    // put_char_in_pos('c', 0x07, 0, 0);
-    // uint32_t c = get_char_pos(0);
-    // debug_printf_uint("c = ", 'c');
-    // debug_printf_uint("c = ", (c & 0xFF00) >> 8);
-    // debug_printf_uint("c = ", (c & 0x00FF));
-    // put_char((c & 0xFF00) >> 8, c & 0xFF);
-
-    thread_start("prog1", 30, prog1, NULL);
-    thread_start("prog2", 30, prog2, NULL);
-    thread_start("prog3", 30, prog3, NULL);
-    thread_start("prog4", 30, prog4, NULL);
-    // process_execute(u_prog_a, "user_prog_a");
-    // process_execute(u_prog_b, "user_prog_b");
-
-    // inputing = true;
-    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
-
-    // console_put_str(command, 0x07);
-
-    // thread_start("k_thread_b", 8, k_thread_b, "argB ");
     intr_enable();
 
     while (1) {
@@ -113,10 +79,97 @@ int main(void) {
     return 0;
 }
 
-void clear() {
-    set_cursor_in_pos(0, 0);
-    for (int i = 0; i < 2000; i++) console_put_char(0, 0x07);
-    set_cursor_in_pos(0, 0);
+void getline() {
+    enum intr_status old_status = intr_disable();
+    int len = 0;
+    while (1) {
+        char c = ioq_getchar(&keyboard_ioq);
+        if (c == '\b' && len > 0) {
+            len--;
+            continue;
+        }
+        if (c == '\r' || c == '\n' || len >= COMMAND_SIZE) break;
+        command[len++] = c;
+    }
+    command[len] = 0;
+    intr_set_status(old_status);
+}
+
+void terminal(void *arg) {
+    console_clear();
+    while (1) {
+        console_acquire();
+        put_str("\n\rGwShell:", 0x0E);
+        getline();
+        console_release();
+
+        if (strcmp(command, "help") == 0) {
+            console_put_str(msg_help, 0x07);
+        } else if (strcmp(command, "clr") == 0) {
+            console_clear();
+        } else if (strcmp(command, "ls") == 0) {
+            console_put_str(msg_ls, 0x07);
+        } else if (strcmp(command, "exit") == 0) {
+            console_clear();
+        } else if (strcmp(command, "exec") == 0) {
+            console_put_str("Please enter the program ID seperated by a space (e.g.  \"1 2 3 4\") : ", 0x0F);
+
+            console_acquire();
+            getline();
+
+            // lock_release(&prog_lock[1]);
+            // lock_release(&prog_lock[2]);
+            for (int i = 0; i < strlen(command); i++) {
+                if (command[i] >= '1' && command[i] <= '4') {
+                    lock_release(&prog_lock[command[i] - '0']);
+                } else if (command[i] != ' ') {
+                    put_str("\nSorry, no such program ID.\n", 0x07);
+                }
+            }
+            console_release();
+
+            for (int i = 0; i < 100000; i++)
+                for (int j = 0; j < 1000; j++) {}
+        }
+    }
+}
+
+void userprog_init() {
+    // lock_init(&prog1_lock);
+    // lock_acquire(&prog1_lock);
+
+    for (int i = 1; i <= 4; i++) {
+        lock_init(&prog_lock[i]);
+        lock_acquire(&prog_lock[i]);
+    }
+    thread_start("run_prog1", 30, run_prog1, NULL);
+    thread_start("run_prog2", 30, run_prog2, NULL);
+    thread_start("run_prog3", 30, run_prog3, NULL);
+    thread_start("run_prog4", 30, run_prog4, NULL);
+}
+
+void run_prog1(void *arg) {
+    lock_acquire(&prog_lock[1]);
+    prog1();
+    lock_release(&prog_lock[1]);
+}
+
+void run_prog2(void *arg) {
+    lock_acquire(&prog_lock[2]);
+    prog2();
+    lock_release(&prog_lock[2]);
+}
+
+void run_prog3(void *arg) {
+    lock_acquire(&prog_lock[3]);
+    prog3();
+    lock_release(&prog_lock[3]);
+}
+
+void run_prog4(void *arg) {
+    lock_acquire(&prog_lock[4]);
+    prog4();
+    lock_release(&prog_lock[4]);
 }
 
 void save_screen() {
@@ -133,59 +186,3 @@ void recover_screen() {
     }
     set_cursor(cursor_pos);
 }
-
-void idle() {
-}
-
-// void readin() {
-//     // inputing = true;
-//     char c = keyboard_getchar();
-// }
-
-// void k_thread_a(void* arg) {
-//     char* s = arg;
-//     while (inputing == true) {
-//         enum intr_status old_status = intr_disable();
-//         command_len = 0;
-//         while (!is_ioq_empty(&keyboard_ioq) && command_len < COMMAND_SIZE) {
-//             char c = ioq_getchar(&keyboard_ioq);
-//             if (c == '\r') {
-//                 inputing = false;
-//                 break;
-//             }
-//             command[command_len++] = c;
-//             console_put_str(s, 0x07);
-//             console_put_char(c, 0x07);
-//         }
-//         command[command_len] = 0;
-//         intr_set_status(old_status);
-//     }
-// }
-
-// /* 在线程中运行的函数 */
-// void k_thread_b(void* arg) {
-//     /* 用void*来通用表示参数,被调用的函数知道自己需要什么类型的参数,自己转换再用 */
-//     char* s = arg;
-//     while (1) {
-//         intr_disable();
-//         enum intr_status old_status = intr_disable();
-//         console_put_str(s, 0x07);
-//         // char c = ioq_getchar(&keyboard_ioq);
-//         intr_set_status(old_status);
-//         intr_enable();
-//     }
-// }
-
-// /* 测试用户进程 */
-// void u_prog_a(void) {
-//     while (1) {
-//         test_var_a++;
-//     }
-// }
-
-// /* 测试用户进程 */
-// void u_prog_b(void) {
-//     while (1) {
-//         test_var_b++;
-//     }
-// }

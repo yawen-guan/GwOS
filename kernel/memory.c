@@ -52,9 +52,10 @@ void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
             count++;
         }
         vaddr_start = now->userprog_vaddr.vaddr_start + idx_bit_start * PG_SIZE;
-    }
 
-    ASSERT((uint32_t)vaddr_start < (0xc0000000 - PG_SIZE));
+        //start_process中占用了0xc0000000 - PG_SIZE
+        ASSERT((uint32_t)vaddr_start < (0xc0000000 - PG_SIZE));
+    }
 
     return (void *)vaddr_start;
 }

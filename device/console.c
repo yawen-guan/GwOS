@@ -94,6 +94,14 @@ void console_put_char_in_pos(char c, uint8_t attr, uint8_t pos_x, uint8_t pos_y)
     console_release();
 }
 
+/**
+ * @brief 在终端特定位置输出字符串
+ * 
+ * @param c 
+ * @param attr 
+ * @param pos_x 
+ * @param pos_y 
+ */
 void console_put_str_in_pos(char *s, uint8_t attr, uint8_t pos_x, uint8_t pos_y) {
     console_acquire();
     uint32_t len = strlen(s);
@@ -103,5 +111,13 @@ void console_put_str_in_pos(char *s, uint8_t attr, uint8_t pos_x, uint8_t pos_y)
         put_char_pos(s[i], attr, pos);
         pos++;
     }
+    console_release();
+}
+
+void console_clear() {
+    console_acquire();
+    set_cursor_in_pos(0, 0);
+    for (int i = 0; i < 2000; i++) put_char(0, 0x07);
+    set_cursor_in_pos(0, 0);
     console_release();
 }
