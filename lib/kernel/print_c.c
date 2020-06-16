@@ -39,6 +39,12 @@ void set_cursor_in_pos(uint32_t pos_x, uint32_t pos_y) {
     set_cursor(pos_x * 80 + pos_y);
 }
 
+void clear() {
+    set_cursor_in_pos(0, 0);
+    for (int i = 0; i < 2000; i++) put_char(0, 0x07);
+    set_cursor_in_pos(0, 0);
+}
+
 void debug_printf_s(uint8_t *s, uint8_t *c) {
     put_char('\n', 0x07);
     put_str(s, 0x07);

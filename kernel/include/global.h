@@ -88,3 +88,6 @@ struct gdt_desc {
 
 // ----- page -----
 #define PG_SIZE 4096
+
+extern bool exec_flag;
+extern bool release_flag;

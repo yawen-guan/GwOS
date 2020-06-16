@@ -24,3 +24,7 @@ void node_update(struct running_node* obj, uint32_t min_x, uint32_t min_y, uint3
         obj->v_y = -1;
     }
 }
+
+void int_call() {
+    asm volatile("int $0x2a");
+}

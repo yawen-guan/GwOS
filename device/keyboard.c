@@ -117,11 +117,11 @@ static char keymap[][2] = {
  */
 static void intr_keyboard_handler(void) {
     // ouch
-    struct pcb* now = running_thread();
-    if (now->name[0] == 'r' && now->name[1] == 'u' && now->name[2] == 'n') {
-        console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
-        ouch = true;
-    }
+    // struct pcb* now = running_thread();
+    // if (now->name[0] == 'r' && now->name[1] == 'u' && now->name[2] == 'n') {
+    //     console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
+    //     ouch = true;
+    // }
 
     /* 这次中断发生前的上一次中断,以下任意三个键是否有按下 */
     bool ctrl_down_last = ctrl_status;
@@ -204,14 +204,22 @@ static void intr_keyboard_handler(void) {
 
         /* 如果cur_char不为0,也就是ascii码为除'\0'外的字符就加入键盘缓冲区中 */
         if (cur_char) {
-            // if (cur_char == '\r') {
-            //     debug_printf_s("cur_char ", "c = r");
-            // }
-
-            if (!is_ioq_full(&keyboard_ioq)) {
+            if (exec_flag == false && !is_ioq_full(&keyboard_ioq)) {
                 put_char(cur_char, 0x07);  // 临时的
                 ioq_putchar(&keyboard_ioq, cur_char);
             }
+
+            if (exec_flag == true) {
+                console_put_char_in_pos(cur_char, 0x07, 3, 0);
+                if (cur_char == 'q') {
+                    release_flag = true;
+                    console_put_char_in_pos(cur_char, 0x07, 4, 0);
+                } else {
+                    console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
+                    ouch = true;
+                }
+            }
+
             return;
         }
 

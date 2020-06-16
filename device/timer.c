@@ -49,7 +49,7 @@ void intr_timer_handler() {
     put_char_in_pos(FHL_char, 0x0B, 24, 79);
 
     if (ouch == true) {
-        ouch_count = 1000;
+        ouch_count = 10000;
         ouch = false;
     }
     if (ouch_count > 0) {

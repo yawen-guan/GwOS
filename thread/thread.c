@@ -137,10 +137,6 @@ void schedule() {
 
     struct pcb *now = running_thread();
 
-    // put_str("\nnow -> name is ", 0x07);
-    // put_str(now->name, 0x07);
-    // put_char('\n', 0x07);
-
     // if (list_empty(&thread_ready_list) == true && now->status == TASK_RUNNING) {
     //     now->ticks = now->priority;
     //     return;
@@ -168,11 +164,7 @@ void schedule() {
 
     // debug_printf_s("schedule ", "process_active start");
 
-    // put_str("\nnext -> name is ", 0x07);
-    // put_str(next->name, 0x07);
-    // put_char('\n', 0x07);
-
-    process_activate(next);
+    // process_activate(next);
 
     // console_put_str("process_activated\n", 0x07);
 
