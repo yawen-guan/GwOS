@@ -57,12 +57,8 @@ void update_tss_esp(struct pcb* thread) {
  * @return struct gdt_desc 
  */
 struct gdt_desc make_gdt_desc(uint32_t* desc_addr, uint32_t limit, uint8_t attr_low, uint8_t attr_high) {
-    debug_printf_s("make_gdt_desc ", "begin");
-
     uint32_t desc_base = (uint32_t)desc_addr;
     struct gdt_desc desc;
-
-    debug_printf_s("make_gdt_desc ", "ok 1");
 
     desc.limit_low_word = limit & 0x0000ffff;
     desc.base_low_word = desc_base & 0x0000ffff;
@@ -70,8 +66,6 @@ struct gdt_desc make_gdt_desc(uint32_t* desc_addr, uint32_t limit, uint8_t attr_
     desc.attr_low_byte = (uint8_t)(attr_low);
     desc.limit_high_attr_high = (((limit & 0x000f0000) >> 16) + (uint8_t)(attr_high));
     desc.base_high_byte = desc_base >> 24;
-
-    debug_printf_s("make_gdt_desc ", "finish");
 
     return desc;
 }
@@ -81,44 +75,55 @@ struct gdt_desc make_gdt_desc(uint32_t* desc_addr, uint32_t limit, uint8_t attr_
  * 
  */
 void tss_init() {
-    put_str("tss_init start\n", 0x07);
+    // put_str("tss_init start\n", 0x07);
 
+    // uint32_t tss_size = sizeof(tss);
+    // memset(&tss, 0, sizeof(tss));
+    // tss.ss0 = SELECTOR_KERNEL_STACK;
+    // tss.io_base = tss_size;
+
+    // //gdt的段基址为0x900,一个描述符8B，tss为第四个描述符
+    // struct gdt_desc tss_desc = make_gdt_desc((uint32_t*)&tss, tss_size - 1, TSS_ATTR_LOW, TSS_ATTR_HIGH);
+
+    // *((uint32_t*)0xc0000920) = 1;
+
+    // *((struct gdt_desc*)0xc0000920) = tss_desc;
+
+    // //DPL=3的数据段和代码段描述符
+    // *((struct gdt_desc*)0xc0000928) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_CODE_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
+    // *((struct gdt_desc*)0xc0000930) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_DATA_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
+
+    // // 用指令lgdt加载gdt
+    // uint64_t gdt_operand = ((8 * 7 - 1) | ((uint64_t)(uint32_t)0xc0000900 << 16));  // 7个描述符大小
+    // asm volatile("lgdt %0"
+    //              :
+    //              : "m"(gdt_operand));
+
+    // // 用指令ltr加载tss到TR寄存器
+    // asm volatile("ltr %w0"
+    //              :
+    //              : "r"(SELECTOR_TSS));
     uint32_t tss_size = sizeof(tss);
-    memset(&tss, 0, sizeof(tss));
+    memset(&tss, 0, tss_size);
     tss.ss0 = SELECTOR_KERNEL_STACK;
     tss.io_base = tss_size;
 
-    debug_printf_s("ok", "1");
+    /* gdt段基址为0x900,把tss放到第4个位置,也就是0x900+0x20的位置 */
 
-    //gdt的段基址为0x900,一个描述符8B，tss为第四个描述符
-    struct gdt_desc tss_desc = make_gdt_desc((uint32_t*)&tss, tss_size - 1, TSS_ATTR_LOW, TSS_ATTR_HIGH);
+    /* 在gdt中添加dpl为0的TSS描述符 */
+    *((struct gdt_desc*)0xc0000920) = make_gdt_desc((uint32_t*)&tss, tss_size - 1, TSS_ATTR_LOW, TSS_ATTR_HIGH);
 
-    debug_printf_s("ok", "1.5");
-
-    *((uint32_t*)0xc0000920) = 1;
-
-    debug_printf_s("ok", "1.8");
-
-    *((struct gdt_desc*)0xc0000920) = tss_desc;
-
-    debug_printf_s("ok", "2");
-
-    //DPL=3的数据段和代码段描述符
+    /* 在gdt中添加dpl为3的数据段和代码段描述符 */
     *((struct gdt_desc*)0xc0000928) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_CODE_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
     *((struct gdt_desc*)0xc0000930) = make_gdt_desc((uint32_t*)0, 0xfffff, GDT_DATA_ATTR_LOW_DPL3, GDT_ATTR_HIGH);
 
-    debug_printf_s("ok", "3");
-    // 用指令lgdt加载gdt
+    /* gdt 16位的limit 32位的段基址 */
     uint64_t gdt_operand = ((8 * 7 - 1) | ((uint64_t)(uint32_t)0xc0000900 << 16));  // 7个描述符大小
     asm volatile("lgdt %0"
                  :
                  : "m"(gdt_operand));
-
-    debug_printf_s("ok", "4");
-    // 用指令ltr加载tss到TR寄存器
     asm volatile("ltr %w0"
                  :
                  : "r"(SELECTOR_TSS));
-
-    put_str("tss_init and ltr done\n", 0x07);
+    // put_str("tss_init and ltr done\n", 0x07);
 }

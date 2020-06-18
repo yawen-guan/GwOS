@@ -20,10 +20,3 @@ static void intr_keyboard_handler();
  * 
  */
 void keyboard_init();
-
-/**
- * @brief 从键盘缓冲区读入一个字符
- * 
- * @return char 
- */
-char keyboard_getchar();

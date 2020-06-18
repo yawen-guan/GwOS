@@ -4,8 +4,6 @@ section .text
 global switch_to
 switch_to:
 ;(now, next) 两个struct pcb *
-
-    
     push esi
     push edi
     push ebx

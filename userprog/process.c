@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "print.h"
 #include "string.h"
+#include "syscall.h"
 #include "thread.h"
 #include "tss.h"
 
@@ -31,7 +32,7 @@ void start_process(void* proc) {
     proc_stack->eip = function;
     proc_stack->cs = SELECTOR_USER_CODE;
     proc_stack->eflags = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
-    proc_stack->esp = (void*)((uint32_t)get_one_page(PF_USER, USER_STACK3_VADDR) + PG_SIZE);
+    proc_stack->esp = (void*)((uint32_t)get_one_page(PF_USER, USER_STACK3_VADDR) + PG_SIZE);  ///////  here
     proc_stack->ss = SELECTOR_USER_DATA;
     asm volatile("movl %0, %%esp; jmp intr_exit"
                  :
@@ -47,26 +48,16 @@ void start_process(void* proc) {
  * @param thread 
  */
 void page_dir_activate(struct pcb* thread) {
-    // debug_printf_s("page_dir_activate ", "start");
-
     uint32_t pagedir_phy_addr = 0x100000;  //所有内核线程的页表地址
     if (thread->pg_dir != NULL) {          //用户进程
         pagedir_phy_addr = addr_vir2phy((uint32_t)thread->pg_dir);
     }
-
-    // debug_printf_s("page_dir_activate", " vir = ");
-    // put_uint((uint32_t)thread->pg_dir, 16, 0x07);
-
-    // debug_printf_s("page_dir_activate", " phy = ");
-    // put_uint(pagedir_phy_addr, 16, 0x07);
 
     //刷新页表
     asm volatile("movl %0, %%cr3"
                  :
                  : "r"(pagedir_phy_addr)
                  : "memory");
-
-    // debug_printf_s("page_dir_active ", "finish");
 }
 
 /**
@@ -77,14 +68,11 @@ void page_dir_activate(struct pcb* thread) {
  */
 void process_activate(struct pcb* thread) {
     ASSERT(thread != NULL);
-
     page_dir_activate(thread);
-
-    // console_put_str("page_dir_actived\n", 0x07);
-
     if (thread->pg_dir != NULL) {  //用户进程才需要更新tss的esp0
         update_tss_esp(thread);
     }
+    ASSERT(thread->status == TASK_RUNNING);
 }
 
 /**
@@ -129,11 +117,8 @@ void create_user_vaddr_bitmap(struct pcb* user_prog) {
  * @param name 
  */
 void process_execute(void* proc, char* name) {
-    debug_printf_s("process_execute ", "get kernel pages start");
-
     struct pcb* thread = get_kernel_pages(1);  //pcb在内核中
 
-    debug_printf_s("process_execute ", "get kernel pages finished");
     ASSERT(thread != NULL);
 
     init_thread(thread, name, default_priority);

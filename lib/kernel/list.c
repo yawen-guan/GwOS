@@ -32,16 +32,16 @@ void list_insert_before(struct list_node* src, struct list_node* node) {
  * @brief 让node成为队头head的下一个节点
  * 
  */
-void list_push(struct list* plist, struct list_node* node) {
-    list_insert_before(plist->head.next, node);
+void list_push(struct list* list, struct list_node* node) {
+    list_insert_before(list->head.next, node);
 }
 
 /**
  * @brief 在队尾tail前插入node
  * 
  */
-void list_append(struct list* plist, struct list_node* node) {
-    list_insert_before(&plist->tail, node);  // 在队尾的前面插入
+void list_append(struct list* list, struct list_node* node) {
+    list_insert_before(&list->tail, node);  // 在队尾的前面插入
 }
 
 /**
@@ -62,8 +62,8 @@ void list_remove(struct list_node* node) {
  * 
  * @return struct list_node* 
  */
-struct list_node* list_pop(struct list* plist) {
-    struct list_node* node = plist->head.next;
+struct list_node* list_pop(struct list* list) {
+    struct list_node* node = list->head.next;
     list_remove(node);
     return node;
 }
@@ -72,9 +72,9 @@ struct list_node* list_pop(struct list* plist) {
  * @brief 查找obj_node是否存在
  * 
  */
-bool node_find(struct list* plist, struct list_node* obj_node) {
-    struct list_node* node = plist->head.next;
-    while (node != &plist->tail) {
+bool node_find(struct list* list, struct list_node* obj_node) {
+    struct list_node* node = list->head.next;
+    while (node != &list->tail) {
         if (node == obj_node) {
             return true;
         }
@@ -88,12 +88,12 @@ bool node_find(struct list* plist, struct list_node* obj_node) {
  * 
  * @return struct list_node* 
  */
-struct list_node* list_traversal(struct list* plist, function func, int arg) {
-    struct list_node* node = plist->head.next;
-    if (list_empty(plist)) {
+struct list_node* list_traversal(struct list* list, function func, int arg) {
+    struct list_node* node = list->head.next;
+    if (list_empty(list)) {
         return NULL;
     }
-    while (node != &plist->tail) {
+    while (node != &list->tail) {
         if (func(node, arg)) {
             return node;
         }
@@ -106,10 +106,10 @@ struct list_node* list_traversal(struct list* plist, function func, int arg) {
  * @brief 求链表的长度
  * 
  */
-uint32_t list_len(struct list* plist) {
-    struct list_node* node = plist->head.next;
+uint32_t list_len(struct list* list) {
+    struct list_node* node = list->head.next;
     uint32_t len = 0;
-    while (node != &plist->tail) {
+    while (node != &list->tail) {
         len++;
         node = node->next;
     }
@@ -121,6 +121,6 @@ uint32_t list_len(struct list* plist) {
  *
  * @return bool 
  */
-bool list_empty(struct list* plist) {  // 判断队列是否为空
-    return (plist->head.next == &plist->tail ? true : false);
+bool list_empty(struct list* list) {  // 判断队列是否为空
+    return (list->head.next == &list->tail ? true : false);
 }

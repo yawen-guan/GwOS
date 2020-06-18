@@ -23,6 +23,6 @@ uint32_t get_cursor_pos();
 void clear();
 
 void debug_printf_s(uint8_t *s, uint8_t *c);
-void debug_printf_uint(uint8_t *s, uint32_t x);
+void debug_printf_uint(uint8_t *s, uint32_t x, uint32_t b);
 
 // #endif

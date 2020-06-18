@@ -1,5 +1,6 @@
 #include "bitmap.h"
 
+#include "debug.h"
 #include "interrupt.h"
 #include "print.h"
 #include "string.h"
@@ -9,11 +10,6 @@
  * 
  */
 void bitmap_init(struct bitmap *mp) {
-    put_str("\nbitmap_init start\n", 0x07);
-    // put_str("\nmp -> len = ", 0x07);
-    // put_int(mp -> len, 10, 0x07);
-    // put_char('\n', 0x07);
-
     memset(mp->bits, 0, mp->len);
 }
 
@@ -26,7 +22,7 @@ bool bitmap_check_idx(struct bitmap *mp, uint32_t idx) {
     uint32_t idx_byte = idx / 8;
     uint32_t idx_bit = idx % 8;
 
-    return (((mp->bits[idx_byte]) & (1 << idx_bit)) != false);
+    return (((mp->bits[idx_byte]) & (1 << idx_bit)) != 0);
 }
 
 /** 
@@ -55,6 +51,7 @@ int32_t bitmap_apply_cnt(struct bitmap *mp, uint32_t cnt) {
  * 
  */
 void bitmap_set_idx(struct bitmap *mp, uint32_t idx, uint8_t value) {
+    ASSERT((value == 0) || (value == 1));
     uint32_t idx_byte = idx / 8;
     uint32_t idx_bit = idx % 8;
     if (value == 0) {

@@ -4,6 +4,7 @@
 #include "global.h"
 #include "interrupt.h"
 #include "list.h"
+#include "print.h"
 #include "thread.h"
 
 /**
@@ -37,6 +38,7 @@ void semaphore_down(struct semaphore* sema) {
     enum intr_status old_status = intr_disable();
 
     while (sema->value == 0) {  //锁被占用
+        ASSERT(!node_find(&sema->waiters, &running_thread()->general_node));
         list_append(&sema->waiters, &running_thread()->general_node);
         thread_block(TASK_BLOCKED);
     }
@@ -73,6 +75,7 @@ void lock_acquire(struct lock* lock) {
     if (lock->holder != running_thread()) {
         semaphore_down(&lock->semaphore);
         lock->holder = running_thread();
+        ASSERT(lock->holder_repeat_cnt == 0);
         lock->holder_repeat_cnt = 1;
     } else  //重复申请
         lock->holder_repeat_cnt++;
@@ -84,10 +87,14 @@ void lock_acquire(struct lock* lock) {
  * @param lock 
  */
 void lock_release(struct lock* lock) {
+    ASSERT(lock->holder == running_thread());
+    // put_int(lock->holder_repeat_cnt, 10, 0x07);
     if (lock->holder_repeat_cnt > 1) {
         lock->holder_repeat_cnt--;
         return;
     }
+
+    ASSERT(lock->holder_repeat_cnt == 1);
     lock->holder = NULL;
     lock->holder_repeat_cnt = 0;
     semaphore_up(&lock->semaphore);

@@ -5,8 +5,6 @@
 #include "global.h"
 #include "stdint.h"
 
-extern bool ouch;
-
 /**
  * @brief 计数器PIC8253的初始化
  * 

@@ -2,11 +2,14 @@
 
 #include "console.h"
 #include "debug.h"
+#include "global.h"
 #include "interrupt.h"
 #include "memory.h"
 #include "print.h"
 #include "process.h"
 #include "string.h"
+#include "sync.h"
+#include "syscall.h"
 
 #define PG_SIZE 4096  // 4KB/page
 #define STACK_MAGIC 0x12345678
@@ -15,6 +18,7 @@ struct pcb *main_thread;        // 主线程PCB
 struct list thread_ready_list;  // 就绪队列
 struct list thread_all_list;    // 所有任务队列
 static struct list_node *thread_node;
+struct lock pid_lock;
 
 extern void switch_to(struct pcb *now, struct pcb *next);
 
@@ -41,18 +45,26 @@ void kernel_thread(thread_func *func, void *func_arg) {
     func(func_arg);
 }
 
+int16_t alloc_pid() {
+    static int16_t next_pid = 0;
+    lock_acquire(&pid_lock);
+    next_pid++;
+    lock_release(&pid_lock);
+    return next_pid;
+}
+
 /**
  * @brief 初始化线程栈
  * 
  */
-void thread_create(struct pcb *pthread, thread_func func, void *func_arg) {
+void thread_create(struct pcb *thread, thread_func func, void *func_arg) {
     //保留中断栈
-    pthread->self_kstack -= sizeof(struct intr_stack);
+    thread->self_kstack -= sizeof(struct intr_stack);
     //保留线程栈
-    pthread->self_kstack -= sizeof(struct thread_stack);
+    thread->self_kstack -= sizeof(struct thread_stack);
 
     //初始化内核线程栈
-    struct thread_stack *ks = (struct thread_stack *)pthread->self_kstack;
+    struct thread_stack *ks = (struct thread_stack *)thread->self_kstack;
     ks->eip = kernel_thread;
     ks->func = func;
     ks->func_arg = func_arg;
@@ -66,20 +78,21 @@ void thread_create(struct pcb *pthread, thread_func func, void *func_arg) {
  * @brief 初始化线程
  * 
  */
-void init_thread(struct pcb *pthread, char *name, int priority) {
-    memset(pthread, 0, sizeof(*pthread));
-    pthread->self_kstack = (uint32_t *)((uint32_t)pthread + PG_SIZE);  // 0特权级栈，初始化为pcb最顶端
-    if (pthread == main_thread) {
-        pthread->status = TASK_RUNNING;
+void init_thread(struct pcb *thread, char *name, int priority) {
+    memset(thread, 0, sizeof(*thread));
+    thread->self_kstack = (uint32_t *)((uint32_t)thread + PG_SIZE);  // 0特权级栈，初始化为pcb最顶端
+    thread->pid = alloc_pid();
+    if (thread == main_thread) {
+        thread->status = TASK_RUNNING;
     } else {
-        pthread->status = TASK_READY;
+        thread->status = TASK_READY;
     }
-    strcpy(pthread->name, name);
-    pthread->priority = priority;
-    pthread->ticks = priority;
-    pthread->elapsed_ticks = 0;
-    pthread->pg_dir = NULL;
-    pthread->stack_magic = STACK_MAGIC;
+    strcpy(thread->name, name);
+    thread->priority = priority;
+    thread->ticks = priority;
+    thread->elapsed_ticks = 0;
+    thread->pg_dir = NULL;
+    thread->stack_magic = STACK_MAGIC;
 }
 
 /**
@@ -92,8 +105,6 @@ void init_thread(struct pcb *pthread, char *name, int priority) {
  * @return struct pcb* 
  */
 struct pcb *thread_start(char *name, int priority, thread_func func, void *func_arg) {
-    //put_str("thread_start\n", 0x07);
-
     struct pcb *thread = get_kernel_pages(1);  //pcb占一页
 
     init_thread(thread, name, priority);
@@ -105,12 +116,6 @@ struct pcb *thread_start(char *name, int priority, thread_func func, void *func_
     list_append(&thread_ready_list, &thread->general_node);
     list_append(&thread_all_list, &thread->all_list_node);
 
-    // asm volatile("movl %0, %%esp; pop %%ebp; pop %%ebx; pop %%edi; pop %%esi; ret"
-    //              :
-    //              : "g"(thread->self_kstack)
-    //              : "memory");
-
-    //put_str("thread_end\n", 0x07);
     return thread;
 }
 
@@ -131,18 +136,12 @@ void make_main_thread() {
  * 
  */
 void schedule() {
-    // debug_printf_s("schedule here ", "start");
-
     ASSERT(intr_get_status() == INTR_OFF);
 
     struct pcb *now = running_thread();
 
-    // if (list_empty(&thread_ready_list) == true && now->status == TASK_RUNNING) {
-    //     now->ticks = now->priority;
-    //     return;
-    // }
-
     if (now->status == TASK_RUNNING) {  //time slice用完
+        // debug_printf_s("task-running ", "ok");
         ASSERT(!node_find(&thread_ready_list, &now->general_node));
         list_append(&thread_ready_list, &now->general_node);
         now->ticks = now->priority;
@@ -151,22 +150,22 @@ void schedule() {
         //等待某事件发生
     }
 
-    // debug_printf_s("schedule ", "changed status");
+    // debug_printf_uint("is empty ", list_empty(&thread_ready_list), 10);
+    // struct list_node *node = &thread_ready_list.head;
+    // while (node != &thread_ready_list.tail) {
+    //     console_debug_printf_str("node ", "here");
+    //     node = node->next;
+    // }
 
-    ASSERT(!list_empty(&thread_ready_list));
+    ASSERT(list_empty(&thread_ready_list) == false);
     thread_node = NULL;
     thread_node = list_pop(&thread_ready_list);
 
-    // debug_printf_s("schedule ", "list_pop finished");
-
     struct pcb *next = elem2entry(struct pcb, general_node, thread_node);
     next->status = TASK_RUNNING;
+    process_activate(next);
 
-    // debug_printf_s("schedule ", "process_active start");
-
-    // process_activate(next);
-
-    // console_put_str("process_activated\n", 0x07);
+    // debug_printf_s(now->name, next->name);
 
     switch_to(now, next);
 }
@@ -176,14 +175,10 @@ void schedule() {
  * 
  */
 void thread_init() {
-    //put_str("thread_init start\n", 0x07);
-
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
-
+    lock_init(&pid_lock);
     make_main_thread();
-
-    //put_str("thread_init done\n", 0x07);
 }
 
 /**
@@ -193,6 +188,7 @@ void thread_init() {
  * 
  */
 void thread_block(enum task_status status) {
+    ASSERT(((status == TASK_BLOCKED) || (status == TASK_WAITING) || (status == TASK_HANGING)));
     enum intr_status old_status = intr_disable();
     struct pcb *now_thread = running_thread();
     now_thread->status = status;
@@ -203,13 +199,17 @@ void thread_block(enum task_status status) {
 /**
  * @brief 将线程由阻塞态回复到ready态
  * 
- * @param pthread 
+ * @param thread 
  */
-void thread_unblock(struct pcb *pthread) {
+void thread_unblock(struct pcb *thread) {
+    ASSERT(((thread->status == TASK_BLOCKED) || (thread->status == TASK_WAITING) || (thread->status == TASK_HANGING)));
+
     enum intr_status old_status = intr_disable();
-    if (pthread->status != TASK_READY) {
-        list_push(&thread_ready_list, &pthread->general_node);
-        pthread->status = TASK_READY;
+    if (thread->status != TASK_READY) {
+        ASSERT(!node_find(&thread_ready_list, &thread->general_node));
+
+        list_push(&thread_ready_list, &thread->general_node);
+        thread->status = TASK_READY;
     }
     intr_set_status(old_status);
 }

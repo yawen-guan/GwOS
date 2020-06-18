@@ -6,8 +6,10 @@
 #include "memory.h"
 #include "print.h"
 #include "process.h"
+#include "stdio.h"
 #include "string.h"
 #include "sync.h"
+#include "syscall.h"
 #include "thread.h"
 
 #define SCREEN_SIZE 2000
@@ -15,6 +17,7 @@
 
 void terminal(void *arg);
 static void intr_handler_0x2a();
+static void intr_handler_0x2b();
 
 void save_screen();
 void recover_screen();
@@ -48,22 +51,100 @@ bool exec_flag;
 bool release_flag;
 uint32_t release_cnt;
 
+void idle();
+void k_thread_a(void *);
+void k_thread_b(void *);
+void u_prog_a(void);
+void u_prog_b(void);
+int test_var_a = 0, test_var_b = 0;
+
 int main(void) {
     put_str("I am kernel\n", 0x07);
 
     init_all();
 
-    // userprog_init();
     register_handler(0x2A, intr_handler_0x2a);
+    register_handler(0x2B, intr_handler_0x2b);
     thread_start("terminal", 30, terminal, NULL);
-    // thread_start("prog1", 30, prog1, NULL);
+
+    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
+    // thread_start("k_thread_b", 31, k_thread_b, "argB ");
     // thread_start("idle", 30, idle, NULL);
+
+    // console_debug_printf_uint("console pid = ", get_pid(), 10);
+    // process_execute(u_prog_a, "user_prog_a");
+    // process_execute(u_prog_b, "user_prog_b");
+
+    // printf("%x %d %s %c\n", 10, 11, "hello_world!", 'c');
+    // putchar('t');
+    // putchar('\n');
+
+    // char tmp[100];
+    // read(tmp);
+
+    // console_debug_printf_str("tmp = ", tmp);
+
+    // uint32_t x;
+    // uint32_t y;
+    // char ch;
+    // scanf("%d %x %s %c", &x, &y, tmp, &ch);
+
+    // console_debug_printf_uint("x = ", x, 10);
+    // console_debug_printf_uint("y = ", y, 10);
+    // console_debug_printf_str("tmp = ", tmp);
+    // console_debug_printf_str("ch = ", &ch);
+
+    // write("testing write in main thread\n", 0x07);
+
+    // ch = getchar();
+    // console_debug_printf_str("ch = ", &ch);
+
+    console_debug_printf_str("here ", "ok");
 
     intr_enable();
 
     while (1) {
     };
     return 0;
+}
+void idle() {}
+
+/* 在线程中运行的函数 */
+void k_thread_a(void *arg) {
+    char *para = arg;
+    console_put_str("k_thread_a is running\n", 0x07);
+    // console_debug_printf_uint("pid = ", get_pid(), 10);
+    // write("testing write\n", 0x07);
+    while (1) {
+        console_put_str(" v_a:0x", 0x07);
+        console_put_int(test_var_a, 16, 0x07);
+    }
+}
+
+/* 在线程中运行的函数 */
+void k_thread_b(void *arg) {
+    char *para = arg;
+    console_put_str("k_thread_b is running\n", 0x07);
+    // console_debug_printf_uint("pid = ", get_pid(), 10);
+    while (1) {
+        console_put_str(" v_b:0x", 0x07);
+        console_put_int(test_var_b, 16, 0x07);
+    }
+}
+
+/* 测试用户进程 */
+void u_prog_a(void) {
+    // test_var_a = get_pid();
+    while (1) {
+        test_var_a++;
+    }
+}
+
+/* 测试用户进程 */
+void u_prog_b(void) {
+    while (1) {
+        test_var_b++;
+    }
 }
 
 void getline() {
@@ -148,6 +229,10 @@ static void intr_handler_0x2a() {
     now->status = TASK_DIED;
 
     if (release_cnt == 0) exec_flag = false;
+}
+
+static void intr_handler_0x2b() {
+    console_put_str_in_pos("int 2b", 0x0B, 24, 36);
 }
 
 void save_screen() {

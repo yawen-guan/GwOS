@@ -51,9 +51,10 @@ void debug_printf_s(uint8_t *s, uint8_t *c) {
     put_str(c, 0x07);
     put_char('\n', 0x07);
 }
-void debug_printf_uint(uint8_t *s, uint32_t x) {
+
+void debug_printf_uint(uint8_t *s, uint32_t x, uint32_t b) {
     put_char('\n', 0x07);
     put_str(s, 0x07);
-    put_uint(x, 10, 0x07);
+    put_uint(x, b, 0x07);
     put_char('\n', 0x07);
 }

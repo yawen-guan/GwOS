@@ -34,6 +34,7 @@ int32_t get_next_pos(int32_t pos) {
  * @return false 
  */
 bool is_ioq_full(struct ioqueue* q) {
+    ASSERT(intr_get_status() == INTR_OFF);
     return get_next_pos(q->head) == q->tail;  //注意是head的下一个与tail碰撞！ioq头进（写）尾出（读）
 }
 
@@ -45,6 +46,7 @@ bool is_ioq_full(struct ioqueue* q) {
  * @return false 
  */
 bool is_ioq_empty(struct ioqueue* q) {
+    ASSERT(intr_get_status() == INTR_OFF);
     return q->head == q->tail;
 }
 
@@ -54,6 +56,7 @@ bool is_ioq_empty(struct ioqueue* q) {
  * @param waiter 指针，指向一个线程指针(pcb *). waiter = ioq->producer or ioq->consumer
  */
 void ioq_wait(struct pcb** waiter) {
+    ASSERT(*waiter == NULL && waiter != NULL);
     *waiter = running_thread();
     thread_block(TASK_BLOCKED);
 }
@@ -64,6 +67,7 @@ void ioq_wait(struct pcb** waiter) {
  * @param waiter 
  */
 void wakeup(struct pcb** waiter) {
+    ASSERT(*waiter != NULL);
     thread_unblock(*waiter);
     *waiter = NULL;
 }
@@ -100,15 +104,6 @@ char ioq_getchar(struct ioqueue* q) {
  */
 void ioq_putchar(struct ioqueue* q, char c) {
     ASSERT(intr_get_status() == INTR_OFF);
-
-    // put_str("ioq_putchar ", 0x07);
-    // put_char(c, 0x07);
-    // put_char('\n', 0x07);
-
-    // if (c == '\r') {
-    //     // inputing = false;
-    //     debug_printf_s("ioq_putchar ", "c = r");
-    // }
 
     while (is_ioq_full(q) == true) {
         lock_acquire(&q->lock);

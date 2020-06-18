@@ -65,3 +65,7 @@ void console_put_char_in_pos(char c, uint8_t attr, uint8_t pos_x, uint8_t pos_y)
 void console_put_str_in_pos(char *s, uint8_t attr, uint8_t pos_x, uint8_t pos_y);
 
 void console_clear();
+
+void console_debug_printf_str(char *s, char *c);
+
+void console_debug_printf_uint(char *s, uint32_t x, uint32_t b);

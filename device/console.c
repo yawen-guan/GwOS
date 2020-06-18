@@ -109,15 +109,31 @@ void console_put_str_in_pos(char *s, uint8_t attr, uint8_t pos_x, uint8_t pos_y)
     pos = pos * 80 + pos_y;
     for (int i = 0; i < len; i++) {
         put_char_pos(s[i], attr, pos);
-        pos++;
+        pos = pos + 1;  // mod 2000 handle 1
     }
     console_release();
 }
 
+/**
+ * @brief clear and set cursor at (0, 0)
+ * 
+ */
 void console_clear() {
     console_acquire();
     set_cursor_in_pos(0, 0);
     for (int i = 0; i < 2000; i++) put_char(0, 0x07);
     set_cursor_in_pos(0, 0);
+    console_release();
+}
+
+void console_debug_printf_str(char *s, char *c) {
+    console_acquire();
+    debug_printf_s(s, c);
+    console_release();
+}
+
+void console_debug_printf_uint(char *s, uint32_t x, uint32_t b) {
+    console_acquire();
+    debug_printf_uint(s, x, b);
     console_release();
 }

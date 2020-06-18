@@ -1,12 +1,13 @@
 #include "memory.h"
 
+#include "console.h"
 #include "debug.h"
+#include "global.h"
 #include "print.h"
 #include "string.h"
 #include "sync.h"
 #include "thread.h"
 
-#define PG_SIZE 4096                  // 4KB/page
 #define MEM_BITMAP_BASE 0xc009a000    // 支持四页的位图，最大可管理512MB的物理内存
 #define KERNEL_HEAP_START 0xc0100000  // 堆内存：3GB + 1MB开始
 
@@ -30,8 +31,6 @@ struct virtual_addr kernel_vaddr;
  * @return 成功：返回虚拟页的起始地址； 失败：返回NULL
  */
 void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
-    //put_str("\nvaddr_get start\n", 0x07);
-
     int vaddr_start = 0, idx_bit_start = -1;
     uint32_t count = 0;
     if (pf == PF_KERNEL) {  //kernel_pool
@@ -56,7 +55,6 @@ void *vaddr_get(enum pool_flag pf, uint32_t cnt) {
         //start_process中占用了0xc0000000 - PG_SIZE
         ASSERT((uint32_t)vaddr_start < (0xc0000000 - PG_SIZE));
     }
-
     return (void *)vaddr_start;
 }
 
@@ -107,25 +105,17 @@ void page_table_add(void *_vaddr, void *_page_phyaddr) {
     uint32_t *pde = pde_ptr(vaddr);
     uint32_t *pte = pte_ptr(vaddr);
 
-    if (*pde & PG_P_1) {             // 该页目录项已存在
-        if ((*pte & PG_P_1) == 0) {  // 该页表项不存在
-            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
-        } else {
-            put_str("pte repeat\n", 0x07);
-            while (1)
-                ;
-        }
+    if (*pde & PG_P_1) {           // 该页目录项已存在
+        ASSERT(!(*pte & PG_P_1));  // 该页表项不存在
+        *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
+
     } else {
         uint32_t pde_phyaddr = (uint32_t)palloc(&kernel_pool);
         *pde = (pde_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
         memset((void *)((int)pte & 0xfffff000), 0, PG_SIZE);  // pde_phyaddr对应的物理内存页清空
-        if ((*pte & PG_P_1) == 0) {                           // 该页表项不存在
-            *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
-        } else {
-            put_str("pte repeat\n", 0x07);
-            while (1)
-                ;
-        }
+
+        ASSERT(!(*pte & PG_P_1));  // 该页表项不存在
+        *pte = (page_phyaddr | PG_US_U | PG_RW_W | PG_P_1);
     }
 }
 
@@ -135,7 +125,7 @@ void page_table_add(void *_vaddr, void *_page_phyaddr) {
  * @return 成功：返回起始虚拟地址；失败：返回NULL 
  */
 void *malloc_page(enum pool_flag pf, uint32_t cnt) {
-    if (!(cnt > 0 && cnt < 3840)) return NULL;  // 一个内存池16MB，15MB=3840页，限制其不超过3840页
+    ASSERT(cnt > 0 && cnt < 3840);  // 一个内存池16MB，15MB=3840页，限制其不超过3840页
 
     // 申请虚拟地址
     void *vaddr_start = vaddr_get(pf, cnt);
@@ -160,11 +150,12 @@ void *malloc_page(enum pool_flag pf, uint32_t cnt) {
  * @return 成功：返回虚拟地址；失败：返回NULL
  */
 void *get_kernel_pages(uint32_t cnt) {
-    //put_str("\nget_kernel_pages start\n", 0x07);
+    lock_acquire(&kernel_pool.lock);
     void *vaddr = malloc_page(PF_KERNEL, cnt);
     if (vaddr != NULL) {
         memset(vaddr, 0, cnt * PG_SIZE);
     }
+    lock_release(&kernel_pool.lock);
     return vaddr;
 }
 
@@ -179,7 +170,6 @@ void *get_user_pages(uint32_t cnt) {
     if (vaddr != NULL) {
         memset(vaddr, 0, cnt * PG_SIZE);
     }
-
     lock_release(&user_pool.lock);
     return vaddr;
 }
@@ -221,7 +211,6 @@ void *get_one_page(enum pool_flag pf, uint32_t vaddr) {
         return NULL;
     }
     page_table_add((void *)vaddr, page_phyaddr);
-
     lock_release(&p->lock);
     return (void *)vaddr;
 }

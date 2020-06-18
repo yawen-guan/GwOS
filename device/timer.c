@@ -19,9 +19,6 @@ uint32_t ticks;  //自中断开启以来，内核总共的tick数
 
 uint32_t FHL_count;
 
-bool ouch;
-uint32_t ouch_count;
-
 /**
  * @brief 设置时间中断的频率
  * 把操作的计数器counter_no、读写锁属性rwl、计数器模式counter_mode写入模式控制寄存器并赋予初始值counter_value
@@ -48,15 +45,6 @@ void intr_timer_handler() {
     char FHL_char = (FHL_count == 0) ? '|' : (FHL_count == 1) ? '/' : '\\';
     put_char_in_pos(FHL_char, 0x0B, 24, 79);
 
-    if (ouch == true) {
-        ouch_count = 10000;
-        ouch = false;
-    }
-    if (ouch_count > 0) {
-        ouch_count--;
-        if (ouch_count == 0) console_put_str_in_pos("           ", 0x07, 24, 35);
-    }
-
     struct pcb* now_thread = running_thread();
 
     ASSERT(now_thread->stack_magic == 0x12345678);
@@ -64,12 +52,7 @@ void intr_timer_handler() {
     now_thread->elapsed_ticks++;
     ticks++;
 
-    // debug_printf_s("timer: ", now_thread->name);
-    // debug_printf_uint("now->ticks = ", now_thread->ticks);
-    // put_char('\n', 0x07);
-
     if (now_thread->ticks == 0) {  // time slice用完
-
         schedule();
     } else
         now_thread->ticks--;
@@ -80,12 +63,10 @@ void intr_timer_handler() {
  * 
  */
 void timer_init() {
-    put_str("timer_init start\n", 0x07);
+    // put_str("timer_init start\n", 0x07);
     FHL_count = 0;
-    ouch = false;
-    ouch_count = 0;
 
     frequency_set(CONTRER0_PORT, COUNTER0_NO, READ_WRITE_LATCH, COUNTER_MODE, COUNTER0_VALUE);
     register_handler(0x20, intr_timer_handler);
-    put_str("timer_init done\n", 0x07);
+    // put_str("timer_init done\n", 0x07);
 }

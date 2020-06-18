@@ -11,9 +11,11 @@
 #define PIC_S_CTRL 0xa0  // slave片控制端口
 #define PIC_S_DATA 0xa1  // slave片数据端口
 
-#define IDT_DESC_CNT 0x30  // 目前支持的中断数
+#define IDT_DESC_CNT 0x81  // 目前支持的中断数
 
 #define EFLAGS_IF 0x00000200
+
+extern uint32_t syscall_handler();
 
 // 门描述符
 struct gate_desc {
@@ -29,18 +31,24 @@ extern void* intr_entry_table[IDT_DESC_CNT];  // 存储中断处理程序的调�
 void* intr_function_table[IDT_DESC_CNT];      // 具体的中断处理程序
 char* intr_name[IDT_DESC_CNT];                // 中断对应的异常的名字
 
+void make_idt_desc(struct gate_desc* g,
+                   void* func,
+                   uint8_t attribute) {
+    g->func_offset_low_16bit = (uint32_t)func & 0x0000FFFF;
+    g->selector = SELECTOR_KERNEL_CODE;
+    g->dcount = 0;
+    g->attribute = attribute;
+    g->func_offset_high_16bit = ((uint32_t)func & 0xFFFF0000) >> 16;
+}
+
 /**
  * @brief 中断描述符表idt的初始化
 */
 void idt_init() {
     for (int i = 0; i < IDT_DESC_CNT; i++) {
-        idt[i].func_offset_low_16bit = (uint32_t)intr_entry_table[i] & 0x0000FFFF;
-        idt[i].selector = SELECTOR_KERNEL_CODE;
-        idt[i].dcount = 0;
-        idt[i].attribute = IDT_DESC_ATTR_DPL0;
-        idt[i].func_offset_high_16bit = (uint32_t)intr_entry_table[i] & 0xFFFF0000;
+        make_idt_desc(&idt[i], intr_entry_table[i], IDT_DESC_ATTR_DPL0);
     }
-    //put_str("\nidt_init done\n", 0x07);
+    make_idt_desc(&idt[IDT_DESC_CNT - 1], syscall_handler, IDT_DESC_ATTR_DPL3);
 }
 
 /**
@@ -142,7 +150,7 @@ void interrupt_init() {
     pic_init();
 
     // load idt
-    uint64_t idt_operand = ((sizeof(idt) - 1) | (uint64_t)((uint32_t)idt << 16));  // 段基址 段界限
+    uint64_t idt_operand = ((sizeof(idt) - 1) | ((uint64_t)(uint32_t)idt << 16));  // 段基址 段界限
     asm volatile("lidt %0"
                  :
                  : "m"(idt_operand));

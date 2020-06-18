@@ -8,7 +8,6 @@ extern put_str
 extern intr_function_table ;存储具体的中断处理函数的数组
 
 section .data
-intr_str db "interrupt occur!", 0xa, 0
 global intr_entry_table
 intr_entry_table: ;中断处理程序地址 数组
 
@@ -37,9 +36,6 @@ intr%1entry:
     jmp intr_exit
     
 
-    ; add esp, 4 
-    ; iret
-
 section .data
     dd intr%1entry  ;利用编译器会将同一类型的section归为一个segment，在intr_entry_table数组中依次定义了各个intrXXentry
 %endmacro
@@ -55,7 +51,6 @@ intr_exit:
     pop ds 
     add esp, 4 ;跳过ERROR_CODE
     iretd
-
 
 ;中断0x20 ~ 0x30
 VECTOR 0x00,ZERO
@@ -107,3 +102,28 @@ VECTOR 0x2d,ZERO	;fpu浮点单元异常
 VECTOR 0x2e,ZERO	;硬盘
 VECTOR 0x2f,ZERO	;保留
 
+; 0x80
+[bits 32]
+extern syscall_table 
+section .text
+global syscall_handler
+syscall_handler:
+    push 0  ; no error code
+
+    push ds
+    push es 
+    push fs 
+    push gs 
+    pushad 
+
+    push 0x80
+
+    push edx ;arg3
+    push ecx ;arg2
+    push ebx ;arg1
+    ;eax: function code 
+    call [syscall_table + eax * 4]
+    add esp, 12 
+
+    mov [esp + 32], eax ;change eax in stack
+    jmp intr_exit

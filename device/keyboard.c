@@ -116,13 +116,6 @@ static char keymap[][2] = {
  * 
  */
 static void intr_keyboard_handler(void) {
-    // ouch
-    // struct pcb* now = running_thread();
-    // if (now->name[0] == 'r' && now->name[1] == 'u' && now->name[2] == 'n') {
-    //     console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
-    //     ouch = true;
-    // }
-
     /* 这次中断发生前的上一次中断,以下任意三个键是否有按下 */
     bool ctrl_down_last = ctrl_status;
     bool shift_down_last = shift_status;
@@ -214,9 +207,6 @@ static void intr_keyboard_handler(void) {
                 if (cur_char == 'q') {
                     release_flag = true;
                     console_put_char_in_pos(cur_char, 0x07, 4, 0);
-                } else {
-                    console_put_str_in_pos("OUCH! OUCH!", 0x0D, 24, 35);
-                    ouch = true;
                 }
             }
 
@@ -245,19 +235,8 @@ static void intr_keyboard_handler(void) {
  * 
  */
 void keyboard_init() {
-    put_str("keyboard init start\n", 0x07);
+    // put_str("keyboard init start\n", 0x07);
     ioqueue_init(&keyboard_ioq);
     register_handler(0x21, intr_keyboard_handler);
-    put_str("keyboard init done\n", 0x07);
-}
-
-/**
- * @brief 从键盘缓冲区读入一个字符
- * 
- * @return char 
- */
-char keyboard_getchar() {
-    debug_printf_s("keyboard ", "getchar begin");
-
-    return ioq_getchar(&keyboard_ioq);
+    // put_str("keyboard init done\n", 0x07);
 }
