@@ -203,10 +203,11 @@ static void intr_keyboard_handler(void) {
             }
 
             if (exec_flag == true) {
-                console_put_char_in_pos(cur_char, 0x07, 3, 0);
-                if (cur_char == 'q') {
+                if (cur_char == esc) {
                     release_flag = true;
-                    console_put_char_in_pos(cur_char, 0x07, 4, 0);
+                } else if (!is_ioq_full(&keyboard_ioq)) {
+                    put_char(cur_char, 0x07);
+                    ioq_putchar(&keyboard_ioq, cur_char);
                 }
             }
 

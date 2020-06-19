@@ -42,10 +42,15 @@ void sys_write_in_pos(char* s, uint32_t attr, uint32_t pos) {
     console_put_str_in_pos(s, attr, pos / 80, pos % 80);
 }
 
+void sys_call_intr2a() {
+    asm volatile("int $0x2a");
+}
+
 void syscall_init() {
     syscall_table[SYS_GET_PID] = sys_get_pid;
     syscall_table[SYS_WRITE] = sys_write;
     syscall_table[SYS_READ] = sys_read;
     syscall_table[SYS_READ_CHAR] = sys_read_char;
     syscall_table[SYS_WRITE_IN_POS] = sys_write_in_pos;
+    syscall_table[SYS_CALL_2A] = sys_call_intr2a;
 }

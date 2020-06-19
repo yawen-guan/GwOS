@@ -26,6 +26,7 @@ extern void prog1();
 extern void prog2();
 extern void prog3();
 extern void prog4();
+extern void prog5();
 
 uint32_t screen_buf[SCREEN_SIZE];
 uint16_t cursor_pos;
@@ -35,6 +36,7 @@ char *msg_help =
     "ls                 list the information of user programs.\n\r"
     "clr                clear the screen.\n\r"
     "exec               run the several user program at the same time.\n\r"
+    "intr               call interrupt\n\r"
     "                   Not limit to one program.\n\r"
     "exit               exit the current GwShell.\n\r";
 char *msg_ls =
@@ -42,11 +44,11 @@ char *msg_ls =
     "1       prog1          com\n\r"
     "2       prog2          com\n\r"
     "3       prog3          com\n\r"
-    "4       prog4          com\n\r";
+    "4       prog4          com\n\r"
+    "5       prog5          com\n\r";
 
 extern struct ioqueue keyboard_ioq;
 
-char command[COMMAND_SIZE];
 bool exec_flag;
 bool release_flag;
 uint32_t release_cnt;
@@ -59,95 +61,23 @@ void u_prog_b(void);
 int test_var_a = 0, test_var_b = 0;
 
 int main(void) {
-    put_str("I am kernel\n", 0x07);
-
     init_all();
-
     register_handler(0x2A, intr_handler_0x2a);
     register_handler(0x2B, intr_handler_0x2b);
     thread_start("terminal", 30, terminal, NULL);
-
-    // thread_start("k_thread_a", 31, k_thread_a, "argA ");
-    // thread_start("k_thread_b", 31, k_thread_b, "argB ");
-    // thread_start("idle", 30, idle, NULL);
-
-    // console_debug_printf_uint("console pid = ", get_pid(), 10);
-    // process_execute(u_prog_a, "user_prog_a");
-    // process_execute(u_prog_b, "user_prog_b");
-
-    // printf("%x %d %s %c\n", 10, 11, "hello_world!", 'c');
-    // putchar('t');
-    // putchar('\n');
-
-    // char tmp[100];
-    // read(tmp);
-
-    // console_debug_printf_str("tmp = ", tmp);
-
-    // uint32_t x;
-    // uint32_t y;
-    // char ch;
-    // scanf("%d %x %s %c", &x, &y, tmp, &ch);
-
-    // console_debug_printf_uint("x = ", x, 10);
-    // console_debug_printf_uint("y = ", y, 10);
-    // console_debug_printf_str("tmp = ", tmp);
-    // console_debug_printf_str("ch = ", &ch);
-
-    // write("testing write in main thread\n", 0x07);
-
-    // ch = getchar();
-    // console_debug_printf_str("ch = ", &ch);
-
-    console_debug_printf_str("here ", "ok");
-
     intr_enable();
 
     while (1) {
     };
     return 0;
 }
-void idle() {}
 
-/* 在线程中运行的函数 */
-void k_thread_a(void *arg) {
-    char *para = arg;
-    console_put_str("k_thread_a is running\n", 0x07);
-    // console_debug_printf_uint("pid = ", get_pid(), 10);
-    // write("testing write\n", 0x07);
-    while (1) {
-        console_put_str(" v_a:0x", 0x07);
-        console_put_int(test_var_a, 16, 0x07);
-    }
+void idle() {
+    while (1)
+        ;
 }
 
-/* 在线程中运行的函数 */
-void k_thread_b(void *arg) {
-    char *para = arg;
-    console_put_str("k_thread_b is running\n", 0x07);
-    // console_debug_printf_uint("pid = ", get_pid(), 10);
-    while (1) {
-        console_put_str(" v_b:0x", 0x07);
-        console_put_int(test_var_b, 16, 0x07);
-    }
-}
-
-/* 测试用户进程 */
-void u_prog_a(void) {
-    // test_var_a = get_pid();
-    while (1) {
-        test_var_a++;
-    }
-}
-
-/* 测试用户进程 */
-void u_prog_b(void) {
-    while (1) {
-        test_var_b++;
-    }
-}
-
-void getline() {
+void getline(char *command) {
     enum intr_status old_status = intr_disable();
     int len = 0;
     while (1) {
@@ -164,11 +94,12 @@ void getline() {
 }
 
 void terminal(void *arg) {
+    char command[COMMAND_SIZE];
     console_acquire();
     clear();
     while (1) {
         put_str("\n\rGwShell:", 0x0E);
-        getline();
+        getline(command);
 
         if (strcmp(command, "help") == 0) {
             put_str(msg_help, 0x07);
@@ -181,12 +112,12 @@ void terminal(void *arg) {
         } else if (strcmp(command, "exec") == 0) {
             put_str("Please enter the program ID seperated by a space (e.g.  \"1 2 3 4\") : ", 0x0F);
 
-            getline();
+            getline(command);
 
             bool wrongID = false;
             for (int i = 0; i < strlen(command); i++) {
                 if (command[i] == ' ') continue;
-                if (command[i] >= '1' && command[i] <= '4') continue;
+                if (command[i] >= '1' && command[i] <= '5') continue;
                 put_str("\nSorry, no such program ID.\n", 0x07);
                 wrongID = true;
             }
@@ -199,13 +130,14 @@ void terminal(void *arg) {
             release_flag = false;
             release_cnt = 0;
             for (int i = 0; i < strlen(command); i++) {
-                if (command[i] >= '1' && command[i] <= '4') {
+                if (command[i] >= '1' && command[i] <= '5') {
                     release_cnt++;
                     int id = command[i] - '0';
-                    if (id == 1) thread_start("prog1", 30, prog1, NULL);
-                    if (id == 2) thread_start("prog2", 30, prog2, NULL);
-                    if (id == 3) thread_start("prog3", 30, prog3, NULL);
-                    if (id == 4) thread_start("prog4", 30, prog4, NULL);
+                    if (id == 1) process_execute(prog1, "prog1");
+                    if (id == 2) process_execute(prog2, "prog2");
+                    if (id == 3) process_execute(prog3, "prog3");
+                    if (id == 4) process_execute(prog4, "prog4");
+                    if (id == 5) process_execute(prog5, "prog5");
                 }
             }
             console_release();
@@ -215,6 +147,37 @@ void terminal(void *arg) {
             console_acquire();
             clear();
             recover_screen();
+        } else if (strcmp(command, "intr") == 0) {
+            put_str("Available interrupt code: \n      0x2a(not available in terminal), 0x2b, 0x80(system call)\n\n", 0x0F);
+            put_str("Please enter the interrupt code : ", 0x0F);
+            getline(command);
+            if (strcmp(command, "0x2b") == 0) {
+                asm volatile("int $0x2b");
+            }
+            if (strcmp(command, "0x80") == 0) {
+                printf("Available syscall code: \n");
+                printf("      0: get current PID\n");
+                printf("      1: read and write a string\n");
+                printf("      2: read and write a string in particular position\n");
+                printf("Please enter the syscall code: ");
+                scanf("%s", command);
+                if (strcmp(command, "0") == 0) {
+                    printf("The terminal's PID = %d\n", get_pid());
+                } else if (strcmp(command, "1") == 0) {
+                    printf("Please input a string to be written: ");
+                    getline(command);
+                    printf("%s\n", command);
+                } else if (strcmp(command, "2") == 0) {
+                    printf("Please input a string to be written, row, column: ");
+                    uint32_t pos_x, pos_y;
+                    scanf("%s%d%d", command, &pos_x, &pos_y);
+                    write_in_pos(command, 0x07, pos_x * 80 + pos_y);
+                } else {
+                    printf("Not available syscall code.\n");
+                }
+            } else {
+                put_str("Not available interrupt code.\n", 0x0F);
+            }
         }
     }
     console_release();
@@ -233,6 +196,9 @@ static void intr_handler_0x2a() {
 
 static void intr_handler_0x2b() {
     console_put_str_in_pos("int 2b", 0x0B, 24, 36);
+    for (int i = 0; i < 50000000; i++)
+        ;
+    console_put_str_in_pos("      ", 0x0B, 24, 36);
 }
 
 void save_screen() {

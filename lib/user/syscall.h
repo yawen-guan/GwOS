@@ -7,7 +7,8 @@ enum SYSCALL_FUNC {
     SYS_WRITE,
     SYS_READ,
     SYS_READ_CHAR,
-    SYS_WRITE_IN_POS
+    SYS_WRITE_IN_POS,
+    SYS_CALL_2A
 };
 
 uint32_t get_pid();
@@ -19,3 +20,5 @@ void read(char *s);
 char read_char();
 
 void write_in_pos(char *s, uint32_t attr, uint32_t pos);
+
+void call_2a();

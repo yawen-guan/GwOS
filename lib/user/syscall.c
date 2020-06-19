@@ -57,3 +57,7 @@ char read_char() {
 void write_in_pos(char *s, uint32_t attr, uint32_t pos) {
     _syscall3(SYS_WRITE_IN_POS, s, attr, pos);
 }
+
+void call_2a() {
+    _syscall0(SYS_CALL_2A);
+}

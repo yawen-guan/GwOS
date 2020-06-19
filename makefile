@@ -105,6 +105,9 @@ $(BUILD_DIR)/prog3.o: $(ACTUAL_USER_DIR)/prog3.c
 $(BUILD_DIR)/prog4.o: $(ACTUAL_USER_DIR)/prog4.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/prog5.o: $(ACTUAL_USER_DIR)/prog5.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 $(BUILD_DIR)/common.o: $(ACTUAL_USER_DIR)/common.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -122,7 +125,7 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/syscall-init.o $(BUILD_DIR)/stdio.o \
 		  $(BUILD_DIR)/prog1.o  $(BUILD_DIR)/prog2.o \
 		  $(BUILD_DIR)/prog3.o	$(BUILD_DIR)/prog4.o \
-		  $(BUILD_DIR)/common.o
+		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 BOOTFILE = $(BUILD_DIR)/mbr.com $(BUILD_DIR)/loader.com

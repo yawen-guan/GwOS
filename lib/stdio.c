@@ -49,6 +49,7 @@ uint32_t vsprintf(char* s, const char* format, va_list args) {
                     arg_s = va_arg(args, char*);
                     strcpy(&s[len], arg_s);
                     len = strlen(s);
+                    break;
                 case 'c':
                     arg_c = va_arg(args, char);
                     s[len++] = arg_c;
@@ -111,7 +112,6 @@ uint32_t vscanf(const char* format, va_list args) {
                     arg_int = va_arg(args, uint32_t*);
                     read(value);
                     *arg_int = s_to_uint(value);
-                    console_debug_printf_uint("uint = ", *arg_int, 10);
                     break;
                 case 'c':
                 case 's':
