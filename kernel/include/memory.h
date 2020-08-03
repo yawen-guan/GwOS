@@ -6,6 +6,7 @@
 #include "bitmap.h"
 #include "global.h"
 #include "stdint.h"
+#include "list.h"
 
 // 内存池标记，表示用哪个内存池
 enum pool_flag {
@@ -25,6 +26,20 @@ struct virtual_addr {
     struct bitmap vaddr_bitmap;
     uint32_t vaddr_start;  // 虚拟地址的起始地址
 };
+
+// 内存块
+struct mem_block {
+    struct list_node free_node;
+};
+
+// 内存块描述符
+struct mem_block_desc {
+    uint32_t block_size;        // 内存块的大小
+    uint32_t blocks_per_arena;  // 此arena中可包含的内存块数
+    struct list free_list;      // 当前可用的内存块列表，可以由多个arena提供
+};
+
+#define DESC_CNT 7
 
 extern struct pool kernel_pool, user_pool;
 
@@ -72,10 +87,45 @@ void mem_init();
 void* get_one_page(enum pool_flag pf, uint32_t vaddr);
 
 /**
+ * @brief 为vaddr分配一页物理页，但不需要从虚拟地址内存池中设置位图
+ * 
+ * @return void* 
+ */
+void* get_one_page_no_bitmap(enum pool_flag pf, uint32_t vaddr);
+
+/**
+ * @brief 在物理地址池中释放物理页地址、在页表中去掉虚拟地址的映射、在虚拟地址池中释放虚拟地址：释放vaddr开头的连续cnt个物理页
+ * 
+ */
+void mfree_page(enum pool_flag pf, void* void_vaddr, uint32_t cnt);
+
+/**
  * @brief 将虚拟地址转换为物理地址
  * 
  * @return uint32_t 
  */
 uint32_t addr_vir2phy(uint32_t vaddr);
+
+/**
+ * @brief malloc申请size字节的内存（在堆中）
+ * 
+ * @param size 
+ * @return void* 
+ */
+void* sys_malloc(uint32_t size);
+
+/**
+ * @brief 释放ptr所指向的内存
+ * 
+ * @param ptr 
+ */
+void sys_free(void* ptr);
+
+/**
+ * @brief 初始化内存块描述符
+ * 
+ * @param descs 
+ */
+void block_desc_init(struct mem_block_desc* descs);
 
 // #endif

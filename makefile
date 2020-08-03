@@ -93,6 +93,9 @@ $(BUILD_DIR)/loader.com: $(BOOT_DIR)/loader.asm
 $(BUILD_DIR)/mbr.com: $(BOOT_DIR)/mbr.asm
 	$(AS) -I $(BOOT_DIR)/include $< -o $@
 
+$(BUILD_DIR)/fork.o: $(USERPROG_DIR)/fork.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 $(BUILD_DIR)/prog1.o: $(ACTUAL_USER_DIR)/prog1.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -111,6 +114,7 @@ $(BUILD_DIR)/prog5.o: $(ACTUAL_USER_DIR)/prog5.c
 $(BUILD_DIR)/common.o: $(ACTUAL_USER_DIR)/common.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+
 OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
 		  $(BUILD_DIR)/kernel.o $(BUILD_DIR)/print_c.o \
@@ -125,7 +129,8 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/syscall-init.o $(BUILD_DIR)/stdio.o \
 		  $(BUILD_DIR)/prog1.o  $(BUILD_DIR)/prog2.o \
 		  $(BUILD_DIR)/prog3.o	$(BUILD_DIR)/prog4.o \
-		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o
+		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o \
+		  $(BUILD_DIR)/fork.o
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 BOOTFILE = $(BUILD_DIR)/mbr.com $(BUILD_DIR)/loader.com

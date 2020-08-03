@@ -15,7 +15,7 @@
 #define SCREEN_SIZE 2000
 #define COMMAND_SIZE 50
 
-void terminal(void *arg);
+void terminal(void* arg);
 static void intr_handler_0x2a();
 static void intr_handler_0x2b();
 
@@ -27,10 +27,11 @@ extern void prog2();
 extern void prog3();
 extern void prog4();
 extern void prog5();
+void progtest();
 
 uint32_t screen_buf[SCREEN_SIZE];
 uint16_t cursor_pos;
-char *msg_help =
+char* msg_help =
     "Welcome to GwShell. Internal commands are as following.\n\r"
     "help               show help information.\n\r"
     "ls                 list the information of user programs.\n\r"
@@ -39,7 +40,7 @@ char *msg_help =
     "intr               call interrupt\n\r"
     "                   Not limit to one program.\n\r"
     "exit               exit the current GwShell.\n\r";
-char *msg_ls =
+char* msg_ls =
     "ID      FILENAME       TYPE\n\r"
     "1       prog1          com\n\r"
     "2       prog2          com\n\r"
@@ -53,31 +54,71 @@ bool exec_flag;
 bool release_flag;
 uint32_t release_cnt;
 
-void idle();
-void k_thread_a(void *);
-void k_thread_b(void *);
+// void idle();
+// void k_thread_a(void*);
+// void k_thread_b(void*);
+// void u_prog_a(void);
+// void u_prog_b(void);
+// int test_var_a = 0, test_var_b = 0;
+
+void k_thread_a(void* arg);
+void k_thread_b(void* arg);
 void u_prog_a(void);
 void u_prog_b(void);
-int test_var_a = 0, test_var_b = 0;
+
+void init();
 
 int main(void) {
     init_all();
-    register_handler(0x2A, intr_handler_0x2a);
-    register_handler(0x2B, intr_handler_0x2b);
-    thread_start("terminal", 30, terminal, NULL);
+    
+    printf("I am kernel\n");
+    // process_execute(u_prog_a, "u_prog_a");
+    // process_execute(init, "init");
+    printf("I am kernel\n");
     intr_enable();
-
-    while (1) {
-    };
+    /********  测试代码  ********/
+    /********  测试代码  ********/
+    while (1)
+        ;
     return 0;
 }
 
-void idle() {
+void u_prog_a() {
+    printf("u_prog_a\n");
     while (1)
         ;
 }
 
-void getline(char *command) {
+void init(void) {
+    printf("init\n");
+    uint32_t ret_pid = fork();
+    if (ret_pid) {
+        printf("i am father, my pid is %d, child pid is %d\n", get_pid(), ret_pid);
+    } else {
+        printf("i am child, my pid is %d, ret pid is %d\n", get_pid(), ret_pid);
+    }
+    while (1)
+        ;
+}
+
+// int main(void) {
+//     init_all();
+//     register_handler(0x2A, intr_handler_0x2a);
+//     register_handler(0x2B, intr_handler_0x2b);
+//     thread_start("terminal", 30, terminal, NULL);
+//     intr_enable();
+
+//     while (1) {
+//     };
+//     return 0;
+// }
+
+// void idle() {
+//     while (1)
+//         ;
+// }
+
+void getline(char* command) {
     enum intr_status old_status = intr_disable();
     int len = 0;
     while (1) {
@@ -93,7 +134,7 @@ void getline(char *command) {
     intr_set_status(old_status);
 }
 
-void terminal(void *arg) {
+void terminal(void* arg) {
     char command[COMMAND_SIZE];
     console_acquire();
     clear();
@@ -153,8 +194,7 @@ void terminal(void *arg) {
             getline(command);
             if (strcmp(command, "0x2b") == 0) {
                 asm volatile("int $0x2b");
-            }
-            if (strcmp(command, "0x80") == 0) {
+            } else if (strcmp(command, "0x80") == 0) {
                 printf("Available syscall code: \n");
                 printf("      0: get current PID\n");
                 printf("      1: read and write a string\n");
@@ -186,7 +226,7 @@ void terminal(void *arg) {
 static void intr_handler_0x2a() {
     if (release_flag == false) return;
 
-    struct pcb *now = running_thread();
+    struct pcb* now = running_thread();
 
     if (now->status == TASK_RUNNING) release_cnt--;
     now->status = TASK_DIED;

@@ -1,9 +1,11 @@
 #include "syscall-init.h"
 
 #include "console.h"
+#include "fork.h"
 #include "global.h"
 #include "ioqueue.h"
 #include "keyboard.h"
+#include "memory.h"
 #include "print.h"
 #include "string.h"
 #include "syscall.h"
@@ -53,4 +55,7 @@ void syscall_init() {
     syscall_table[SYS_READ_CHAR] = sys_read_char;
     syscall_table[SYS_WRITE_IN_POS] = sys_write_in_pos;
     syscall_table[SYS_CALL_2A] = sys_call_intr2a;
+    syscall_table[SYS_MALLOC] = sys_malloc;
+    syscall_table[SYS_FREE] = sys_free;
+    syscall_table[SYS_FORK] = sys_fork;
 }

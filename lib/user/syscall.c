@@ -61,3 +61,15 @@ void write_in_pos(char *s, uint32_t attr, uint32_t pos) {
 void call_2a() {
     _syscall0(SYS_CALL_2A);
 }
+
+void *malloc(uint32_t size) {
+    return (void *)_syscall1(SYS_MALLOC, size);
+}
+
+void free(void *ptr) {
+    _syscall1(SYS_FREE, ptr);
+}
+
+int16_t fork(){
+    return _syscall0(SYS_FORK);
+}

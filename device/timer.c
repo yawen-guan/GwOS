@@ -1,10 +1,11 @@
+#include "timer.h"
+
 #include "console.h"
 #include "debug.h"
 #include "interrupt.h"
 #include "io.h"
 #include "print.h"
 #include "thread.h"
-#include "time.h"
 
 #define IRQ0_FREQUENCY 100                               //100                               //时间中断的频率 100Hz
 #define INPUT_FREQUENCY 1193180                          //计数器0的工作脉冲信号频率
@@ -46,6 +47,7 @@ void intr_timer_handler() {
     put_char_in_pos(FHL_char, 0x0B, 24, 79);
 
     struct pcb* now_thread = running_thread();
+    // printf("from timer: now = %s\n", now_thread->name);
 
     ASSERT(now_thread->stack_magic == 0x12345678);
 

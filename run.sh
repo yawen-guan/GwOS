@@ -1,2 +1,1 @@
-
-/opt/bochs/bin/bochs -f bochsrc.txt
+bochs -f bochsrc.txt

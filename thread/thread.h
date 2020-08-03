@@ -60,13 +60,15 @@ struct pcb {
     enum task_status status;
     char name[16];
     uint8_t priority;
-    uint8_t ticks;                       // 每次在cpu上执行多少tick（嘀嗒）
-    uint32_t elapsed_ticks;              //已经执行的tick数
-    struct list_node general_node;       //在一般的队列中的节点
-    struct list_node all_list_node;      //在thread_all_list中的节点
-    uint32_t *pg_dir;                    //进程:自身的页表的虚拟地址; 线程:NULL
-    struct virtual_addr userprog_vaddr;  //用户进程的虚拟地址
-    uint32_t stack_magic;                //魔数， 栈的边界标记
+    uint8_t ticks;                                     // 每次在cpu上执行多少tick（嘀嗒）
+    uint32_t elapsed_ticks;                            //已经执行的tick数
+    struct list_node general_node;                     //在一般的队列中的节点
+    struct list_node all_list_node;                    //在thread_all_list中的节点
+    uint32_t *pg_dir;                                  //进程:自身的页表的虚拟地址; 线程:NULL
+    struct virtual_addr userprog_vaddr;                //用户进程的虚拟地址
+    struct mem_block_desc user_block_descs[DESC_CNT];  //用户进程的内存快描述符
+    int16_t parent_pid;                                //父进程pid
+    uint32_t stack_magic;                              //魔数， 栈的边界标记
 };
 
 extern struct list thread_ready_list;
@@ -94,6 +96,8 @@ void init_thread(struct pcb *thread, char *name, int priority);
  */
 struct pcb *thread_start(char *name, int prioriry, thread_func func, void *func_arg);
 
+int16_t alloc_pid();
+
 /**
  * @brief 获取当前运行中线程的pcb指针
  * 各个线程所用的0级栈都在自己的PCB中，所以当前栈指针的高20位是当前运行线程的pcb的起始地址
@@ -106,6 +110,12 @@ struct pcb *running_thread();
  * 
  */
 void schedule();
+
+/**
+ * @brief 主动让出CPU，换其他线程运行
+ * 
+ */
+void thread_yield();
 
 /**
  * @brief 线程环境初始化

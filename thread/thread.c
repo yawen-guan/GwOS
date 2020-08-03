@@ -14,13 +14,25 @@
 #define PG_SIZE 4096  // 4KB/page
 #define STACK_MAGIC 0x12345678
 
-struct pcb *main_thread;        // 主线程PCB
+struct pcb *main_thread;  // 主线程PCB
+struct pcb *idle_thread;
 struct list thread_ready_list;  // 就绪队列
 struct list thread_all_list;    // 所有任务队列
 static struct list_node *thread_node;
 struct lock pid_lock;
 
 extern void switch_to(struct pcb *now, struct pcb *next);
+extern void init();
+
+static void idle() {
+    while (1) {
+        thread_block(TASK_BLOCKED);
+        asm volatile("sti; hlt"
+                     :
+                     :
+                     : "memory");
+    }
+}
 
 /**
  * @brief 获取当前运行中线程的pcb指针
@@ -92,6 +104,7 @@ void init_thread(struct pcb *thread, char *name, int priority) {
     thread->ticks = priority;
     thread->elapsed_ticks = 0;
     thread->pg_dir = NULL;
+    thread->parent_pid = -1;  //父进程的pid=-1,表示没有父进程
     thread->stack_magic = STACK_MAGIC;
 }
 
@@ -139,6 +152,7 @@ void schedule() {
     ASSERT(intr_get_status() == INTR_OFF);
 
     struct pcb *now = running_thread();
+    // printf("now = %s\n", now->name);
 
     if (now->status == TASK_RUNNING) {  //time slice用完
         // debug_printf_s("task-running ", "ok");
@@ -157,6 +171,10 @@ void schedule() {
     //     node = node->next;
     // }
 
+    if (list_empty(&thread_ready_list)) {
+        thread_unblock(idle_thread);
+    }
+
     ASSERT(list_empty(&thread_ready_list) == false);
     thread_node = NULL;
     thread_node = list_pop(&thread_ready_list);
@@ -171,6 +189,20 @@ void schedule() {
 }
 
 /**
+ * @brief 主动让出CPU，换其他线程运行
+ * 
+ */
+void thread_yield() {
+    struct pcb *now = running_thread();
+    enum intr_status old_status = intr_disable();
+    ASSERT(!node_find(&thread_ready_list, &now->general_node));
+    list_append(&thread_ready_list, &now->general_node);
+    now->status = TASK_READY;
+    schedule();
+    intr_set_status(old_status);
+}
+
+/**
  * @brief 线程环境初始化
  * 
  */
@@ -178,7 +210,9 @@ void thread_init() {
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
     lock_init(&pid_lock);
+    process_execute(init, "init");
     make_main_thread();
+    idle_thread = thread_start("idle", 10, idle, NULL);
 }
 
 /**

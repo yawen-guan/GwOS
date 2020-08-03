@@ -125,6 +125,7 @@ void process_execute(void* proc, char* name) {
     create_user_vaddr_bitmap(thread);
     thread_create(thread, start_process, proc);
     thread->pg_dir = create_page_dir();
+    block_desc_init(thread->user_block_descs);
 
     enum intr_status old_status = intr_disable();
     ASSERT(!node_find(&thread_ready_list, &thread->general_node));
