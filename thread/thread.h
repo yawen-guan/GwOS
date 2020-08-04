@@ -68,6 +68,7 @@ struct pcb {
     struct virtual_addr userprog_vaddr;                //用户进程的虚拟地址
     struct mem_block_desc user_block_descs[DESC_CNT];  //用户进程的内存快描述符
     int16_t parent_pid;                                //父进程pid
+    int8_t exit_status;                                //进程的退出状态值
     uint32_t stack_magic;                              //魔数， 栈的边界标记
 };
 
@@ -138,4 +139,12 @@ void thread_block(enum task_status status);
  */
 void thread_unblock(struct pcb *thread);
 
-// #endif
+/**
+ * @brief 结束线程（回收pcb、页表，从调度队列中去除）
+ * 
+ * @param thread 
+ * @param need_schedule 
+ */
+void thread_exit(struct pcb *thread, bool need_schedule);
+
+struct pcb *pid2pcb(int32_t pid);

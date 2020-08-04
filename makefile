@@ -96,6 +96,15 @@ $(BUILD_DIR)/mbr.com: $(BOOT_DIR)/mbr.asm
 $(BUILD_DIR)/fork.o: $(USERPROG_DIR)/fork.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/wait.o: $(USERPROG_DIR)/wait.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/exit.o: $(USERPROG_DIR)/exit.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/wait_exit.o: $(USERPROG_DIR)/wait_exit.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 $(BUILD_DIR)/prog1.o: $(ACTUAL_USER_DIR)/prog1.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -114,6 +123,9 @@ $(BUILD_DIR)/prog5.o: $(ACTUAL_USER_DIR)/prog5.c
 $(BUILD_DIR)/common.o: $(ACTUAL_USER_DIR)/common.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/multiproc.o: $(ACTUAL_USER_DIR)/multiproc.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 
 OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
@@ -130,7 +142,8 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/prog1.o  $(BUILD_DIR)/prog2.o \
 		  $(BUILD_DIR)/prog3.o	$(BUILD_DIR)/prog4.o \
 		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o \
-		  $(BUILD_DIR)/fork.o
+		  $(BUILD_DIR)/fork.o   $(BUILD_DIR)/exit.o \
+		  $(BUILD_DIR)/wait.o   $(BUILD_DIR)/multiproc.o 
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 BOOTFILE = $(BUILD_DIR)/mbr.com $(BUILD_DIR)/loader.com

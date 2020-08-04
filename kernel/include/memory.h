@@ -94,6 +94,13 @@ void* get_one_page(enum pool_flag pf, uint32_t vaddr);
 void* get_one_page_no_bitmap(enum pool_flag pf, uint32_t vaddr);
 
 /**
+ * @brief 将一个物理页的对应的内存池的bitmap清零（不改变页表）
+ * 
+ * @param pg_phy_addr 
+ */
+void free_one_phy_page(uint32_t pg_phy_addr);
+
+/**
  * @brief 在物理地址池中释放物理页地址、在页表中去掉虚拟地址的映射、在虚拟地址池中释放虚拟地址：释放vaddr开头的连续cnt个物理页
  * 
  */

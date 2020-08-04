@@ -1,6 +1,7 @@
 #include "syscall-init.h"
 
 #include "console.h"
+#include "exit.h"
 #include "fork.h"
 #include "global.h"
 #include "ioqueue.h"
@@ -10,6 +11,7 @@
 #include "string.h"
 #include "syscall.h"
 #include "thread.h"
+#include "wait.h"
 
 #define syscall_cnt 32
 
@@ -58,4 +60,7 @@ void syscall_init() {
     syscall_table[SYS_MALLOC] = sys_malloc;
     syscall_table[SYS_FREE] = sys_free;
     syscall_table[SYS_FORK] = sys_fork;
+    syscall_table[SYS_WAIT] = sys_wait;
+    syscall_table[SYS_EXIT] = sys_exit;
+    syscall_table[SYS_WAIT_WITHOUT_PID] = sys_wait_without_pid;
 }

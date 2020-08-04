@@ -19,7 +19,14 @@ struct pcb *idle_thread;
 struct list thread_ready_list;  // 就绪队列
 struct list thread_all_list;    // 所有任务队列
 static struct list_node *thread_node;
-struct lock pid_lock;
+// struct lock pid_lock;
+
+struct pid_pool {
+    struct bitmap pid_bitmap;
+    uint32_t pid_start;
+    struct lock pid_lock;
+} pid_pool;
+uint8_t pid_bitmap_bits[128] = {0};
 
 extern void switch_to(struct pcb *now, struct pcb *next);
 extern void init();
@@ -57,12 +64,52 @@ void kernel_thread(thread_func *func, void *func_arg) {
     func(func_arg);
 }
 
+// int16_t alloc_pid() {
+//     static int16_t next_pid = 0;
+//     lock_acquire(&pid_lock);
+//     next_pid++;
+//     lock_release(&pid_lock);
+//     return next_pid;
+// }
+
+/**
+ * @brief 初始化pid pool
+ * 
+ */
+void pid_pool_init() {
+    pid_pool.pid_start = 1;
+    pid_pool.pid_bitmap.bits = pid_bitmap_bits;
+    pid_pool.pid_bitmap.len = 128;
+    bitmap_init(&pid_pool.pid_bitmap);
+    lock_init(&pid_pool.pid_lock);
+}
+
 int16_t alloc_pid() {
-    static int16_t next_pid = 0;
-    lock_acquire(&pid_lock);
-    next_pid++;
-    lock_release(&pid_lock);
-    return next_pid;
+    lock_acquire(&pid_pool.pid_lock);
+    int32_t idx = bitmap_apply_cnt(&pid_pool.pid_bitmap, 1);
+    bitmap_set_idx(&pid_pool.pid_bitmap, idx, 1);
+    lock_release(&pid_pool.pid_lock);
+    return idx + pid_pool.pid_start;
+}
+
+void release_pid(int16_t pid) {
+    lock_acquire(&pid_pool.pid_lock);
+    int32_t idx = pid - pid_pool.pid_start;
+    bitmap_set_idx(&pid_pool.pid_bitmap, idx, 0);
+    lock_release(&pid_pool.pid_lock);
+}
+
+bool pid_check(struct list_node *node, int32_t pid) {
+    struct pcb *thread = elem2entry(struct pcb, all_list_node, node);
+    if (thread->pid == pid) return true;
+    return false;
+}
+
+struct pcb *pid2pcb(int32_t pid) {
+    struct list_node *node = list_traversal(&thread_all_list, pid_check, pid);
+    if (node == NULL) return NULL;
+    struct pcb *thread = elem2entry(struct pcb, all_list_node, node);
+    return thread;
 }
 
 /**
@@ -209,7 +256,7 @@ void thread_yield() {
 void thread_init() {
     list_init(&thread_ready_list);
     list_init(&thread_all_list);
-    lock_init(&pid_lock);
+    pid_pool_init();
     process_execute(init, "init");
     make_main_thread();
     idle_thread = thread_start("idle", 10, idle, NULL);
@@ -246,4 +293,30 @@ void thread_unblock(struct pcb *thread) {
         thread->status = TASK_READY;
     }
     intr_set_status(old_status);
+}
+
+/**
+ * @brief 结束线程（回收pcb、页表，从调度队列中去除）
+ * 
+ * @param thread 
+ * @param need_schedule 
+ */
+void thread_exit(struct pcb *thread, bool need_schedule) {
+    intr_disable();
+    thread->status = TASK_DIED;
+    if (node_find(&thread_ready_list, &thread->general_node)) {
+        list_remove(&thread->general_node);
+    }
+    if (thread->pg_dir) {  // user process
+        mfree_page(PF_KERNEL, thread->pg_dir, 1);
+    }
+    list_remove(&thread->all_list_node);
+    if (thread != main_thread) {
+        mfree_page(PF_KERNEL, thread, 1);
+    }
+    release_pid(thread->pid);
+    if (need_schedule) {
+        schedule();
+        PANIC("thread_exit: should not be here\n");
+    }
 }

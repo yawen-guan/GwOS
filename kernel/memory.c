@@ -356,6 +356,24 @@ void *sys_malloc(uint32_t size) {
 }
 
 /**
+ * @brief 将一个物理页的对应的内存池的bitmap清零（不改变页表）
+ * 
+ * @param pg_phy_addr 
+ */
+void free_one_phy_page(uint32_t pg_phy_addr) {
+    struct pool *p;
+    uint32_t idx = 0;
+    if (pg_phy_addr >= user_pool.phy_addr_start) {  // user
+        p = &user_pool;
+        idx = (pg_phy_addr - user_pool.phy_addr_start) / PG_SIZE;
+    } else {  // kernel
+        p = &kernel_pool;
+        idx = (pg_phy_addr - kernel_pool.phy_addr_start) / PG_SIZE;
+    }
+    bitmap_set_idx(&p->pool_bitmap, idx, 0);
+}
+
+/**
  * @brief page pfree 在物理内存池中释放一个物理页
  * 
  */

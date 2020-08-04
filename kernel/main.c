@@ -3,6 +3,7 @@
 #include "interrupt.h"
 #include "ioqueue.h"
 #include "keyboard.h"
+#include "list.h"
 #include "memory.h"
 #include "print.h"
 #include "process.h"
@@ -27,6 +28,7 @@ extern void prog2();
 extern void prog3();
 extern void prog4();
 extern void prog5();
+extern void multiproc();
 void progtest();
 
 uint32_t screen_buf[SCREEN_SIZE];
@@ -66,20 +68,20 @@ void k_thread_b(void* arg);
 void u_prog_a(void);
 void u_prog_b(void);
 
+void show();
 void init();
 
-int main(void) {
+int main() {
     init_all();
-    
+
     printf("I am kernel\n");
-    // process_execute(u_prog_a, "u_prog_a");
-    // process_execute(init, "init");
-    printf("I am kernel\n");
+    console_acquire();
+    clear();
+    console_release();
     intr_enable();
     /********  测试代码  ********/
     /********  测试代码  ********/
-    while (1)
-        ;
+    thread_exit(running_thread(), true);
     return 0;
 }
 
@@ -89,16 +91,41 @@ void u_prog_a() {
         ;
 }
 
-void init(void) {
-    printf("init\n");
-    uint32_t ret_pid = fork();
-    if (ret_pid) {
-        printf("i am father, my pid is %d, child pid is %d\n", get_pid(), ret_pid);
+void show(struct list* list) {
+    if (list == &thread_all_list) {
+        printf("thread all list:\n");
     } else {
-        printf("i am child, my pid is %d, ret pid is %d\n", get_pid(), ret_pid);
+        printf("thread ready list: \n");
     }
-    while (1)
-        ;
+    struct list_node* node = list->head.next;
+    struct pcb* thread;
+    if (list_empty(list)) return;
+    while (node != &list->tail) {
+        if (list == &thread_all_list) {
+            thread = elem2entry(struct pcb, all_list_node, node);
+        } else {
+            thread = elem2entry(struct pcb, general_node, node);
+        }
+        printf("%s pid = %d\n", thread->name, thread->pid);
+        if (thread->status == TASK_HANGING) printf("!!hanging\n");
+        node = node->next;
+    }
+    return;
+}
+
+void init(void) {
+    uint32_t ret_pid = fork();
+    if (ret_pid) {  // father
+        int32_t status;
+        while (1) {
+            int32_t child_pid = wait_without_pid(&status);
+            if (child_pid == -1) continue;
+            printf("I am father, my pid is %d, child pid is %d, child status = %d\n", get_pid(), child_pid, status);
+        }
+
+    } else {  // child
+        multiproc();
+    }
 }
 
 // int main(void) {
@@ -111,11 +138,6 @@ void init(void) {
 //     while (1) {
 //     };
 //     return 0;
-// }
-
-// void idle() {
-//     while (1)
-//         ;
 // }
 
 void getline(char* command) {

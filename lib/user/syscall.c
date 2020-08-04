@@ -73,3 +73,19 @@ void free(void *ptr) {
 int16_t fork(){
     return _syscall0(SYS_FORK);
 }
+
+// int16_t wait(int32_t *child_exit_status){
+    // return _syscall1(SYS_WAIT, child_exit_status);
+// }
+
+int16_t wait(int32_t pid, int32_t *child_exit_status){
+    return _syscall2(SYS_WAIT, pid, child_exit_status);
+}
+
+int16_t wait_without_pid(int32_t *child_exit_status){
+    return _syscall1(SYS_WAIT, child_exit_status);
+}
+
+void exit(int32_t status){
+    _syscall1(SYS_EXIT, status);
+}
