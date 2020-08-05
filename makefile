@@ -102,9 +102,6 @@ $(BUILD_DIR)/wait.o: $(USERPROG_DIR)/wait.c
 $(BUILD_DIR)/exit.o: $(USERPROG_DIR)/exit.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
-$(BUILD_DIR)/wait_exit.o: $(USERPROG_DIR)/wait_exit.c 
-	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
-
 $(BUILD_DIR)/prog1.o: $(ACTUAL_USER_DIR)/prog1.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -126,6 +123,14 @@ $(BUILD_DIR)/common.o: $(ACTUAL_USER_DIR)/common.c
 $(BUILD_DIR)/multiproc.o: $(ACTUAL_USER_DIR)/multiproc.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/bank.o: $(ACTUAL_USER_DIR)/bank.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/enjoy.o: $(ACTUAL_USER_DIR)/enjoy.c
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/readerwriter.o: $(ACTUAL_USER_DIR)/readerwriter.c
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
 OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/interrupt.o $(BUILD_DIR)/timer.o \
@@ -143,7 +148,9 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/prog3.o	$(BUILD_DIR)/prog4.o \
 		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o \
 		  $(BUILD_DIR)/fork.o   $(BUILD_DIR)/exit.o \
-		  $(BUILD_DIR)/wait.o   $(BUILD_DIR)/multiproc.o 
+		  $(BUILD_DIR)/wait.o   $(BUILD_DIR)/multiproc.o \
+		  $(BUILD_DIR)/bank.o   $(BUILD_DIR)/enjoy.o \
+		  $(BUILD_DIR)/readerwriter.o
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 BOOTFILE = $(BUILD_DIR)/mbr.com $(BUILD_DIR)/loader.com

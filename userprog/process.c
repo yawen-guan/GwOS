@@ -69,7 +69,7 @@ void page_dir_activate(struct pcb* thread) {
 void process_activate(struct pcb* thread) {
     ASSERT(thread != NULL);
     page_dir_activate(thread);
-    if (thread->pg_dir != NULL) {  //用户进程才需要更新tss的esp0
+    if (thread->pg_dir) {  //用户进程才需要更新tss的esp0
         update_tss_esp(thread);
     }
     ASSERT(thread->status == TASK_RUNNING);

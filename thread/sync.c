@@ -27,7 +27,7 @@ void lock_init(struct lock* lock) {
 }
 
 /**
- * @brief 信号量 down操作
+ * @brief 信号量 down操作 P
  * (1) 判断信号量是否大于0
  * (2) 若信号量>0, 信号量-1
  * (3) 若信号量=0, 线程阻塞， 在此信号量上等待
@@ -49,8 +49,8 @@ void semaphore_down(struct semaphore* sema) {
     intr_set_status(old_status);
 }
 
-/**
- * @brief 信号量 up操作
+/*
+ * @brief 信号量 up操作 V
  * (1) 将信号量的值+1
  * (2) 唤醒在次信号量上等待的线程
  * 
@@ -67,7 +67,7 @@ void semaphore_up(struct semaphore* sema) {
 }
 
 /**
- * @brief 获取锁
+ * @brief 获取锁 P
  * 
  * @param lock 
  */
@@ -82,13 +82,13 @@ void lock_acquire(struct lock* lock) {
 }
 
 /**
- * @brief 释放锁
+ * @brief 释放锁 V
  * 
  * @param lock 
  */
 void lock_release(struct lock* lock) {
-    ASSERT(lock->holder == running_thread());
-    // put_int(lock->holder_repeat_cnt, 10, 0x07);
+    // ASSERT(lock->holder == running_thread());
+
     if (lock->holder_repeat_cnt > 1) {
         lock->holder_repeat_cnt--;
         return;

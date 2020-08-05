@@ -1,9 +1,14 @@
 TI_GDT equ  0
 RPL0  equ   0
-SELECTOR_VIDEO equ (0x0003 << 3) + TI_GDT + RPL0
+SELECTOR_VIDEO equ (0x0003<<3) + TI_GDT + RPL0
 
 [bits 32]
 section .text
+;--------------------------------------------
+;put_str 通过put_char来打印以0字符结尾的字符串
+;--------------------------------------------
+;输入：栈中参数为打印的字符串
+;输出：无
 
 global put_char
 global put_char_pos
@@ -33,110 +38,114 @@ put_str: ;(str, attr)
     popad
     ret
 
-put_char: ;(char, attr)
-    pushad  ;save 32bit registers(压入4*8=32B)
-    mov ax, SELECTOR_VIDEO
-    mov gs, ax  ;gs = 显存段选择子
+put_char:  ;(char, attr)
+   pushad	   
+   mov ax, SELECTOR_VIDEO
+   mov gs, ax
 
-    ;----- 获取光标位置（下一个可打印字符的位置） -----
-    ;高8位
-    mov dx, 0x03d4  ;CRT controller寄存器组的Address Register端口地址
-    mov al, 0x0e    ;curosr location high register的索引为0x0e
-    out dx, al      ;对应的data register改变
-    mov dx, 0x03d5  ;CRT controller寄存器组的Data Register端口地址
-    in al, dx       ;读出光标位置的高8位
-    mov ah, al
-    ;低8位
-    mov dx, 0x03d4
-    mov al, 0x0f
-    out dx, al
-    mov dx, 0x03d5
-    in al, dx 
-    ;将光标存入bx 
-    mov bx, ax 
-    ;打印字符
-    mov ecx, [esp + 36] ;参数c（pushad 32B, 返回地址4B）
-    cmp cl, 0xd ;carriage return(CR)回车符
-    jz .is_CR
-    cmp cl, 0xa ;line_feed(LF)换行符
-    jz .is_LF
-    cmp cl, 0x8 ;backspace(BS)回退符
-    jz .is_BS
-    jmp .put_other
+   ;----- 获取光标位置（下一个可打印字符的位置） -----
+   ;高8位
+   mov dx, 0x03d4  ;CRT controller寄存器组的Address Register端口地址
+   mov al, 0x0e	 ;curosr location high register的索引为0x0e
+   out dx, al      ;对应的data register改变
+   mov dx, 0x03d5  ;通过读写数据端口0x3d5来获得或设置光标位置 
+   in al, dx	    ;得到了光标位置的高8位
+   mov ah, al
 
-.is_BS: ;回退
-    dec bx ;光标回退
-    shl bx, 1   ;光标位置*2 = 显存位置
-    mov byte [gs:bx], 0x20  ;在上一个字符位置填空格
-    inc bx
-    mov byte [gs:bx], 0x07
-    shr bx, 1
-    jmp .set_cursor
+   ;低8位
+   mov dx, 0x03d4
+   mov al, 0x0f
+   out dx, al
+   mov dx, 0x03d5 
+   in al, dx
 
-.put_other:
-    shl bx, 1
-    mov [gs:bx], cl
-    inc bx 
-    mov eax, [esp + 40] ;第二个参数，字符属性
-    mov byte [gs:bx], al
-    shr bx, 1
-    inc bx 
-    cmp bx, 2000    ;若满屏，换行即可 is_LF
-    jl .set_cursor
+   ;将光标存入bx
+   mov bx, ax	  
+   ;打印字符
+   mov ecx, [esp + 36] ;参数c（pushad 32B, 返回地址4B）
+   cmp cl, 0xd ;carriage return(CR)回车符
+   jz .is_carriage_return
+   cmp cl, 0xa ;line_feed(LF)换行符
+   jz .is_line_feed
 
-.is_LF: ;换行符: 切换到下一行 \n
+   cmp cl, 0x8 ;backspace(BS)回退符
+   jz .is_backspace
+   jmp .put_other	   
+;;;;;;;;;;;;;;;;;;
 
-.is_CR: ;回车符: 光标撤回行首 \r
+ .is_backspace:		      
+   dec bx ;光标回退
+   shl bx, 1 ;光标位置*2 = 显存位置
+   mov byte [gs:bx], 0x20 ;在上一个字符位置填空格
+   inc bx
+   mov byte [gs:bx], 0x07
+   shr bx, 1
+   jmp .set_cursor
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ .put_other:
+   shl bx, 1
+   mov [gs:bx], cl
+   inc bx
+   mov eax, [esp + 40] ;第二个参数，字符属性
+   mov byte [gs:bx], al
+   shr bx, 1
+   inc bx
+   cmp bx, 2000 ;若满屏，换行即可 is_LF
+   jl .set_cursor
+   
+ .is_line_feed: ;换行符: 切换到下一行 \n
+ .is_carriage_return:;回车符: 光标撤回行首 \r
 ;按下Enter:回车+换行
-    ;处理回车
-    xor dx, dx ;被除数高16位
-    mov ax, bx ;被除数低16位
-    mov si, 80 ;除数
-    div si
-    sub bx, dx ;bx = bx - bx % 80, 即当前行首坐标
+   ;处理回车
+   xor dx, dx ;被除数高16位
+   mov ax, bx ;被除数低16位
+   mov si, 80 ;除数
+   div si
+   sub bx, dx ;bx = bx - bx % 80, 即当前行首坐标
 
-.is_CR_end:
-    ;处理换行
-    add bx, 80  ;换到下一行
-    cmp bx, 2000
-.is_LF_end:
-    jl .set_cursor
+ .is_carriage_return_end:
+   ;处理换行
+   add bx, 80 ;换到下一行
+   cmp bx, 2000
+ .is_line_feed_end:
+   jl .set_cursor
 
-.roll_screen:
-    ;将1～24行拷贝到0~23行
-    cld 
-    mov ecx, 960 ;24*80/2
-    mov esi, 0xb80a0 ;第1行行首
-    mov edi, 0xb8000 ;第0行行首
-    rep movsd 
-    ;第24行填空格
-    mov ebx, 3840 ;1920*2
-    mov ecx, 80
-.cls:
-    mov word [gs:ebx], 0x0720 ;空格，黑底白字
-    add ebx, 2
-    loop .cls 
-    mov bx, 1920 ;光标为第24行首
+ .roll_screen:	
+   ;将1～24行拷贝到0~23行
+   cld  
+   mov ecx, 960 ;24*80/2
+   mov esi, 0xc00b80a0 ;第1行行首
+   mov edi, 0xc00b8000 ;第0行行首
+   rep movsd				  
+   ;第24行填空格
+   mov ebx, 3840 ;1920*2
+   mov ecx, 80
+ .cls:
+   mov word [gs:ebx], 0x0720 ;黑底白字空格
+   add ebx, 2
+   loop .cls 
+   mov bx,1920 ;光标为第24行首
 
-.set_cursor: ;将光标设为bx的值
-    ;高8位
-    mov dx, 0x03d4
-    mov al, 0x0e
-    out dx, al
-    mov dx, 0x03d5
-    mov al, bh
-    out dx, al 
-    ;低8位
-    mov dx, 0x03d4
-    mov al, 0x0f
-    out dx, al
-    mov dx, 0x03d5
-    mov al, bl
-    out dx, al
+ .set_cursor:  ;将光标设为bx值
+   ;高8位
+   mov dx, 0x03d4	
+   mov al, 0x0e
+   out dx, al
+   mov dx, 0x03d5
+   mov al, bh
+   out dx, al
 
-.put_char_done:
-    popad
-    ret
+   ;低8位
+   mov dx, 0x03d4
+   mov al, 0x0f
+   out dx, al
+   mov dx, 0x03d5 
+   mov al, bl
+   out dx, al
+ .put_char_done: 
+   popad
+   ret
 
 put_char_pos: ;(char, attr, pos)
     pushad  ;save 32bit registers(压入4*8=32B)
@@ -161,27 +170,27 @@ put_char_pos: ;(char, attr, pos)
     popad
     ret
 
-set_cursor: ;(pos)
-    pushad
+set_cursor:
+   pushad
+   mov bx, [esp+36]
+;;;;;;; 1 先设置高8位 ;;;;;;;;
+   mov dx, 0x03d4			  ;索引寄存器
+   mov al, 0x0e				  ;用于提供光标位置的高8位
+   out dx, al
+   mov dx, 0x03d5			  ;通过读写数据端口0x3d5来获得或设置光标位置 
+   mov al, bh
+   out dx, al
 
-    mov bx, [esp + 36] ;第一个参数
-    ;高8位
-    mov dx, 0x03d4
-    mov al, 0x0e
-    out dx, al
-    mov dx, 0x03d5
-    mov al, bh
-    out dx, al
-    ;低8位
-    mov dx, 0x03d4
-    mov al, 0x0f
-    out dx, al
-    mov dx, 0x03d5
-    mov al, bl
-    out dx, al
-    
-    popad
-    ret 
+;;;;;;; 2 再设置低8位 ;;;;;;;;;
+   mov dx, 0x03d4
+   mov al, 0x0f
+   out dx, al
+   mov dx, 0x03d5 
+   mov al, bl
+   out dx, al
+   popad
+   ret
+
 
 get_char_pos: ;(pos)
     ; pushad  ;save 32bit registers(压入4*8=32B)

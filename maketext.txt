@@ -1,1 +1,0 @@
-gcc -c -m32 -march=i386 -nostdlib -ffreestanding -nostartfiles  -I ./lib/kernel -I ./lib/user -I ./lib -I ./device -I ./thread -I ./userprog -I ./kernel/include -I ./userprog/actualuserprogs kernel/main.c -o build/main.o

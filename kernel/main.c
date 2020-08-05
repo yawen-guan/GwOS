@@ -22,6 +22,7 @@ static void intr_handler_0x2b();
 
 void save_screen();
 void recover_screen();
+void show();
 
 extern void prog1();
 extern void prog2();
@@ -29,7 +30,10 @@ extern void prog3();
 extern void prog4();
 extern void prog5();
 extern void multiproc();
-void progtest();
+extern void bank();
+extern void enjoy();
+extern void readerwriter();
+
 
 uint32_t screen_buf[SCREEN_SIZE];
 uint16_t cursor_pos;
@@ -56,39 +60,15 @@ bool exec_flag;
 bool release_flag;
 uint32_t release_cnt;
 
-// void idle();
-// void k_thread_a(void*);
-// void k_thread_b(void*);
-// void u_prog_a(void);
-// void u_prog_b(void);
-// int test_var_a = 0, test_var_b = 0;
-
-void k_thread_a(void* arg);
-void k_thread_b(void* arg);
-void u_prog_a(void);
-void u_prog_b(void);
-
-void show();
-void init();
-
 int main() {
     init_all();
-
     printf("I am kernel\n");
     console_acquire();
     clear();
     console_release();
     intr_enable();
-    /********  测试代码  ********/
-    /********  测试代码  ********/
     thread_exit(running_thread(), true);
     return 0;
-}
-
-void u_prog_a() {
-    printf("u_prog_a\n");
-    while (1)
-        ;
 }
 
 void show(struct list* list) {
@@ -124,7 +104,10 @@ void init(void) {
         }
 
     } else {  // child
-        multiproc();
+        // multiproc();
+        // bank();
+        // enjoy();
+        readerwriter();
     }
 }
 

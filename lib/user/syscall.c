@@ -89,3 +89,15 @@ int16_t wait_without_pid(int32_t *child_exit_status){
 void exit(int32_t status){
     _syscall1(SYS_EXIT, status);
 }
+
+void acquire_lock(struct lock *lock){
+    _syscall1(SYS_ACQUIRE_LOCK, lock);
+}
+
+void release_lock(struct lock *lock){
+    _syscall1(SYS_RELEASE_LOCK, lock);
+}
+
+void initial_lock(struct lock *lock){
+    _syscall1(SYS_INITIAL_LOCK, lock);
+}

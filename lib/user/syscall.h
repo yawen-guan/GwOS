@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdint.h"
+#include "sync.h"
 
 enum SYSCALL_FUNC {
     SYS_GET_PID,
@@ -14,7 +15,10 @@ enum SYSCALL_FUNC {
     SYS_FORK,
     SYS_WAIT,
     SYS_EXIT,
-    SYS_WAIT_WITHOUT_PID
+    SYS_WAIT_WITHOUT_PID,
+    SYS_ACQUIRE_LOCK,
+    SYS_RELEASE_LOCK,
+    SYS_INITIAL_LOCK
 };
 
 uint32_t get_pid();
@@ -42,3 +46,9 @@ int16_t wait(int32_t pid, int32_t *child_exit_status);
 int16_t wait_without_pid(int32_t *child_exit_status);
 
 void exit(int32_t status);
+
+void acquire_lock(struct lock *lock);
+
+void release_lock(struct lock *lock);
+
+void initial_lock(struct lock *lock);
