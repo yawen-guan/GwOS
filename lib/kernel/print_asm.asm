@@ -4,11 +4,6 @@ SELECTOR_VIDEO equ (0x0003<<3) + TI_GDT + RPL0
 
 [bits 32]
 section .text
-;--------------------------------------------
-;put_str 通过put_char来打印以0字符结尾的字符串
-;--------------------------------------------
-;输入：栈中参数为打印的字符串
-;输出：无
 
 global put_char
 global put_char_pos
