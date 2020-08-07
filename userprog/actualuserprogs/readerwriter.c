@@ -9,10 +9,6 @@ char data = 'a';
 int reader_counter = 0, writer_counter = 0;
 struct lock rdr, wrt, m, x, y;
 
-void sleep(int t) {
-    for (int i = 0; i < t * 100000; i++) {}
-}
-
 // Main() {
 //     Create_thread(reader, 1);
 //     …;
@@ -35,7 +31,7 @@ void reader(int pid) {
     release_lock(&x);
     // printf("reader\n");
     printf("data is %c from reader pid = %d\n", data, pid);
-    // sleep(2);
+    // sleep(2000);
     acquire_lock(&x);
     reader_counter--;
     if (reader_counter == 0) {
@@ -77,7 +73,7 @@ void writer(int pid) {
     acquire_lock(&m);
     data = 'a' + pid % 26;
     printf("data is %c from writer pid = %d\n", data, pid);
-    // sleep(2);
+    // sleep(2000);
     release_lock(&m);
     acquire_lock(&y);
     writer_counter--;

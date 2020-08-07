@@ -49,3 +49,12 @@ int8_t strcmp(const char *a, const char *b) {
     if (*a > *b) return 1;
     return 0;
 }
+
+char* strcat(char* dst, const char* src) {
+   assert(dst != NULL && src != NULL);
+   char* str = dst;
+   while (*str++);
+   --str;      
+   while((*str++ = *src++));	 
+   return dst;
+}

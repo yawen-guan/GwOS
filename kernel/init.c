@@ -9,6 +9,7 @@
 #include "thread.h"
 #include "timer.h"
 #include "tss.h"
+#include "ide.h"
 
 void init_all() {
     // put_str("\ninit all\n", 0x07);
@@ -20,4 +21,5 @@ void init_all() {
     keyboard_init();
     tss_init();
     syscall_init();
+    ide_init();
 }

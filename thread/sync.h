@@ -36,3 +36,10 @@ void lock_acquire(struct lock* lock);
  * @param lock 
  */
 void lock_release(struct lock* lock);
+
+
+void semaphore_init(struct semaphore* sema, uint8_t value);
+
+void semaphore_down(struct semaphore* sema);
+
+void semaphore_up(struct semaphore* sema);

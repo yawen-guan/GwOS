@@ -11,6 +11,8 @@ typedef char* va_list;
 
 uint32_t printf(const char* format, ...);
 
+uint32_t sprintf(char* buf, const char* format, ...);
+
 char putchar(char c);
 
 uint32_t puts(char* s);
@@ -20,3 +22,11 @@ void scanf(const char* format, ...);
 char getchar();
 
 void gets(char* s);
+
+/**
+ * @brief 内核使用的printf
+ * 
+ * @param format 
+ * @param ... 
+ */
+void kprintf(const char* format, ...);

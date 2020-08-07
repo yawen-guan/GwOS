@@ -13,6 +13,7 @@
 #include "thread.h"
 #include "wait.h"
 #include "sync.h"
+#include "timer.h"
 
 #define syscall_cnt 32
 
@@ -63,6 +64,7 @@ void syscall_init() {
     syscall_table[SYS_FORK] = sys_fork;
     syscall_table[SYS_WAIT] = sys_wait;
     syscall_table[SYS_EXIT] = sys_exit;
+    syscall_table[SYS_SLEEP] = ms_sleep;
     syscall_table[SYS_WAIT_WITHOUT_PID] = sys_wait_without_pid;
     syscall_table[SYS_ACQUIRE_LOCK] = lock_acquire;
     syscall_table[SYS_RELEASE_LOCK] = lock_release;

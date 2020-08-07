@@ -15,4 +15,6 @@ uint32_t strlen(const char *str);
 
 int8_t strcmp(const char *a, const char *b);
 
+char *strcat(char *dst, const char *src);
+
 // #endif

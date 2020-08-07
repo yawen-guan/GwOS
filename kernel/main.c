@@ -63,9 +63,9 @@ uint32_t release_cnt;
 int main() {
     init_all();
     printf("I am kernel\n");
-    console_acquire();
-    clear();
-    console_release();
+    // console_acquire();
+    // clear();
+    // console_release();
     intr_enable();
     thread_exit(running_thread(), true);
     return 0;
@@ -107,7 +107,9 @@ void init(void) {
         // multiproc();
         // bank();
         // enjoy();
-        readerwriter();
+        // readerwriter();
+        while(1)
+            ;
     }
 }
 

@@ -1,5 +1,3 @@
-// #ifndef __DEVICE_TIME_H
-// #define __DEVICE_TIME_H
 #pragma once
 
 #include "global.h"
@@ -11,4 +9,4 @@
  */
 void timer_init();
 
-// #endif
+void ms_sleep(uint32_t ms);

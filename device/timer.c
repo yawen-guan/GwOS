@@ -2,6 +2,7 @@
 
 #include "console.h"
 #include "debug.h"
+#include "global.h"
 #include "interrupt.h"
 #include "io.h"
 #include "print.h"
@@ -15,6 +16,7 @@
 #define COUNTER_MODE 2                                   //使用方式2：比率发生器
 #define READ_WRITE_LATCH 3                               //读写方式
 #define PIT_CONTROL_PORT 0x43                            //控制字寄存器的端口
+#define ms_per_intr (1000 / IRQ0_FREQUENCY)
 
 uint32_t ticks;  //自中断开启以来，内核总共的tick数
 
@@ -58,6 +60,19 @@ void intr_timer_handler() {
         schedule();
     } else
         now_thread->ticks--;
+}
+
+void ticks_to_sleep(uint32_t sleep_ticks) {
+    uint32_t start_tick = ticks;
+    while (ticks - start_tick < sleep_ticks) {
+        thread_yield();
+    }
+}
+
+void ms_sleep(uint32_t ms) {  //ms毫秒
+    uint32_t sleep_ticks = DIV_ROUND_UP(ms, ms_per_intr);
+    ASSERT(sleep_ticks > 0);
+    ticks_to_sleep(sleep_ticks);
 }
 
 /**

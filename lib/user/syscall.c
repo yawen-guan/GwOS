@@ -90,6 +90,10 @@ void exit(int32_t status){
     _syscall1(SYS_EXIT, status);
 }
 
+void sleep(uint32_t ms){
+    _syscall1(SYS_SLEEP, ms);
+}
+
 void acquire_lock(struct lock *lock){
     _syscall1(SYS_ACQUIRE_LOCK, lock);
 }

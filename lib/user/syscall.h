@@ -15,10 +15,11 @@ enum SYSCALL_FUNC {
     SYS_FORK,
     SYS_WAIT,
     SYS_EXIT,
+    SYS_SLEEP,
     SYS_WAIT_WITHOUT_PID,
     SYS_ACQUIRE_LOCK,
     SYS_RELEASE_LOCK,
-    SYS_INITIAL_LOCK
+    SYS_INITIAL_LOCK,
 };
 
 uint32_t get_pid();
@@ -46,6 +47,8 @@ int16_t wait(int32_t pid, int32_t *child_exit_status);
 int16_t wait_without_pid(int32_t *child_exit_status);
 
 void exit(int32_t status);
+
+void sleep(uint32_t ms);
 
 void acquire_lock(struct lock *lock);
 

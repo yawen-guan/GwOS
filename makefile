@@ -48,6 +48,9 @@ $(BUILD_DIR)/keyboard.o: $(DEVICE_DIR)/keyboard.c
 $(BUILD_DIR)/timer.o: $(DEVICE_DIR)/timer.c
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/ide.o: $(DEVICE_DIR)/ide.c
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 $(BUILD_DIR)/bitmap.o: $(LIB_KERNEL_DIR)/bitmap.c
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -141,6 +144,7 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/thread.o $(BUILD_DIR)/list.o \
       	  $(BUILD_DIR)/switch.o $(BUILD_DIR)/console.o \
 		  $(BUILD_DIR)/sync.o $(BUILD_DIR)/keyboard.o \
+		  $(BUILD_DIR)/ide.o \
 		  $(BUILD_DIR)/ioqueue.o $(BUILD_DIR)/tss.o \
       	  $(BUILD_DIR)/process.o $(BUILD_DIR)/syscall.o \
 		  $(BUILD_DIR)/syscall-init.o $(BUILD_DIR)/stdio.o \

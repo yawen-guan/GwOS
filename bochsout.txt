@@ -19,7 +19,7 @@
 00000000000i[      ]   Sound support: no
 00000000000i[      ]   USB support: no
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f338fae8010. after alignment, vector=0x7f338fae9000
+00000000000i[MEM0  ] allocated memory at 0x7f0b1236c010. after alignment, vector=0x7f0b1236d000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/etc/bochs/share/bochs/BIOS-bochs-latest')
@@ -29,7 +29,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Wed Aug  5 10:32:59 2020 (time0=1596594779)
+00000000000i[CMOS  ] Setting initial clock to: Wed Aug  5 13:17:04 2020 (time0=1596604624)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -62,7 +62,11 @@
 00000000000i[HD    ] HD on ata0-0: 'GwOS.img', 'flat' mode
 00000000000i[IMG   ] hd_size: 10321920
 00000000000i[HD    ] ata0-0: using specified geometry: CHS=20/16/63 (sector size=512)
+00000000000i[HD    ] HD on ata0-1: 'disk.img', 'flat' mode
+00000000000i[IMG   ] hd_size: 10321920
+00000000000i[HD    ] ata0-1: using specified geometry: CHS=20/16/63 (sector size=512)
 00000000000i[HD    ] translation on ata0-0 set to 'none'
+00000000000i[HD    ] translation on ata0-1 set to 'none'
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
 00000000000i[DEV   ] PIIX3 PCI IDE controller present at device 1, function 1
 00000000000i[PLUGIN] init_dev of 'unmapped' plugin device by virtual method
@@ -258,30 +262,30 @@
 00002046504i[BXVGA ] VBE known Display Interface b0c0
 00002046536i[BXVGA ] VBE known Display Interface b0c5
 00002049179i[VBIOS ] VBE Bios $Id: vbe.c 228 2020-01-02 23:09:02Z vruppert $
-00002396843i[BIOS  ] ata0-0: PCHS=20/16/63 translation=none LCHS=20/16/63
-00005843667i[BIOS  ] IDE time out
-00006121097i[BIOS  ] Booting from 0000:7c00
-00007672800i[XGUI  ] charmap update. Font is 9 x 16
-00206981693i[      ] Ctrl-C detected in signal handler.
-00206981694i[      ] dbg: Quit
-00206981694i[CPU0  ] CPU is in protected mode (active)
-00206981694i[CPU0  ] CS.mode = 32 bit
-00206981694i[CPU0  ] SS.mode = 32 bit
-00206981694i[CPU0  ] EFER   = 0x00000000
-00206981694i[CPU0  ] | EAX=c00084be  EBX=c000d000  ECX=00000000  EDX=c000fd60
-00206981694i[CPU0  ] | ESP=c0100f44  EBP=c0100f70  ESI=00000000  EDI=00000000
-00206981694i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf SF zf af PF cf
-00206981694i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00206981694i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-00206981694i[CPU0  ] |  DS:0033( 0006| 0|  3) 00000000 ffffffff 1 1
-00206981694i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-00206981694i[CPU0  ] |  ES:0033( 0006| 0|  3) 00000000 ffffffff 1 1
-00206981694i[CPU0  ] |  FS:0033( 0006| 0|  3) 00000000 ffffffff 1 1
-00206981694i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 00000000 0 0
-00206981694i[CPU0  ] | EIP=c00084c2 (c00084c2)
-00206981694i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
-00206981694i[CPU0  ] | CR3=0x00218000 CR4=0x00000000
-00206981694d[PCI   ] Exit
-00206981694i[CMOS  ] Last time is 1596594783 (Wed Aug  5 10:33:03 2020)
-00206981694i[XGUI  ] Exit
-00206981694i[SIM   ] quit_sim called with exit code 0
+00002396893i[BIOS  ] ata0-0: PCHS=20/16/63 translation=none LCHS=20/16/63
+00002450808i[BIOS  ] ata0-1: PCHS=20/16/63 translation=none LCHS=20/16/63
+00002775915i[BIOS  ] Booting from 0000:7c00
+00007697200i[XGUI  ] charmap update. Font is 9 x 16
+00562332498i[      ] Ctrl-C detected in signal handler.
+00562332499i[      ] dbg: Quit
+00562332499i[CPU0  ] CPU is in protected mode (active)
+00562332499i[CPU0  ] CS.mode = 32 bit
+00562332499i[CPU0  ] SS.mode = 32 bit
+00562332499i[CPU0  ] EFER   = 0x00000000
+00562332499i[CPU0  ] | EAX=00000000  EBX=c000f000  ECX=00000000  EDX=00000000
+00562332499i[CPU0  ] | ESP=bfffffe4  EBP=bffffffc  ESI=00000000  EDI=00000000
+00562332499i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df IF tf sf ZF af PF cf
+00562332499i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00562332499i[CPU0  ] |  CS:002b( 0005| 0|  3) 00000000 ffffffff 1 1
+00562332499i[CPU0  ] |  DS:0033( 0006| 0|  3) 00000000 ffffffff 1 1
+00562332499i[CPU0  ] |  SS:0033( 0006| 0|  3) 00000000 ffffffff 1 1
+00562332499i[CPU0  ] |  ES:0033( 0006| 0|  3) 00000000 ffffffff 1 1
+00562332499i[CPU0  ] |  FS:0033( 0006| 0|  3) 00000000 ffffffff 1 1
+00562332499i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 00000000 0 0
+00562332499i[CPU0  ] | EIP=c0001699 (c0001699)
+00562332499i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+00562332499i[CPU0  ] | CR3=0x00234000 CR4=0x00000000
+00562332499d[PCI   ] Exit
+00562332499i[CMOS  ] Last time is 1596604635 (Wed Aug  5 13:17:15 2020)
+00562332499i[XGUI  ] Exit
+00562332499i[SIM   ] quit_sim called with exit code 0

@@ -74,6 +74,17 @@ uint32_t printf(const char* format, ...) {
     return write(buf, 0x07);
 }
 
+
+uint32_t sprintf(char* buf, const char* format, ...) {
+   va_list args;
+   uint32_t retval;
+   va_start(args, format);
+   retval = vsprintf(buf, format, args);
+   va_end(args);
+   return retval;
+}
+
+
 char putchar(char c) {
     char buf[2] = {0};
     buf[0] = c;
@@ -139,4 +150,19 @@ char getchar() {
 
 void gets(char* s) {
     read(s);
+}
+
+/**
+ * @brief 内核使用的printf
+ * 
+ * @param format 
+ * @param ... 
+ */
+void kprintf(const char* format, ...) {
+   va_list args;
+   va_start(args, format);
+   char buf[1024] = {0};
+   vsprintf(buf, format, args);
+   va_end(args);
+   console_put_str(buf, 0x07);
 }
