@@ -11,8 +11,6 @@
 #include "sync.h"
 #include "timer.h"
 
-struct disk disk0, disk1;
-
 /* 定义硬盘各寄存器的端口号 */
 #define reg_data(channel) (channel->port_base + 0)
 #define reg_error(channel) (channel->port_base + 1)
@@ -46,6 +44,9 @@ struct disk disk0, disk1;
 
 uint8_t channel_cnt;             // 按硬盘数计算的通道数
 struct ide_channel channels[2];  // 有两个ide通道
+
+struct disk* sda = &channels[0].devices[0];
+struct disk* sdb = &channels[0].devices[1];
 
 /* 用于记录总扩展分区的起始lba,初始为0,partition_scan时以此为标记 */
 int32_t ext_lba_base = 0;
@@ -123,7 +124,7 @@ static void read_from_sector(struct disk* hd, void* buf, uint8_t sec_cnt) {
 }
 
 /* 将buf中sec_cnt扇区的数据写入硬盘 */
-static void write2sector(struct disk* hd, void* buf, uint8_t sec_cnt) {
+static void write2sector(struct disk* hd, const void* buf, uint8_t sec_cnt) {
     uint32_t size_in_byte;
     if (sec_cnt == 0) {
         /* 因为sec_cnt是8位变量,由主调函数将其赋值时,若为256则会将最高位的1丢掉变为0 */
@@ -194,7 +195,7 @@ void ide_read(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {  // 
 }
 
 /* 将buf中sec_cnt扇区数据写入硬盘 */
-void ide_write(struct disk* hd, uint32_t lba, void* buf, uint32_t sec_cnt) {
+void ide_write(struct disk* hd, uint32_t lba, const void* buf, uint32_t sec_cnt) {
     ASSERT(lba <= max_lba);
     ASSERT(sec_cnt > 0);
     lock_acquire(&hd->my_channel->lock);

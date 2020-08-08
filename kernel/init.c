@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "tss.h"
 #include "ide.h"
+#include "filesystem.h"
 
 void init_all() {
     // put_str("\ninit all\n", 0x07);
@@ -22,4 +23,5 @@ void init_all() {
     tss_init();
     syscall_init();
     ide_init();
+    filesystem_init();
 }

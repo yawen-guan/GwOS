@@ -13,10 +13,12 @@ THREAD_DIR = ./thread
 USERPROG_DIR = ./userprog
 BUILD_DIR = ./build
 BOOT_DIR = ./boot
+FS_DIR = ./filesystem
 ACTUAL_USER_DIR = ./userprog/actualuserprogs
 INCLUDES = -I $(LIB_KERNEL_DIR) -I $(LIB_USER_DIR) -I $(LIB_DIR) \
 		   -I $(DEVICE_DIR) -I $(THREAD_DIR) -I $(USERPROG_DIR) \
-		   -I $(KERNEL_DIR)/include -I $(ACTUAL_USER_DIR)
+		   -I $(KERNEL_DIR)/include -I $(ACTUAL_USER_DIR) \
+		   -I $(FS_DIR)
 
 $(BUILD_DIR)/main.o:$(KERNEL_DIR)/main.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
@@ -105,6 +107,24 @@ $(BUILD_DIR)/wait.o: $(USERPROG_DIR)/wait.c
 $(BUILD_DIR)/exit.o: $(USERPROG_DIR)/exit.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
+$(BUILD_DIR)/exec.o: $(USERPROG_DIR)/exec.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/disk.o: $(FS_DIR)/disk.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/file.o: $(FS_DIR)/file.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/fsfunc.o: $(FS_DIR)/fsfunc.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/shell.o: $(KERNEL_DIR)/shell.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
+$(BUILD_DIR)/filesystem.o: $(FS_DIR)/filesystem.c 
+	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
+
 $(BUILD_DIR)/prog1.o: $(ACTUAL_USER_DIR)/prog1.c 
 	$(CC) $(CCFLAGS) $(INCLUDES) $< -o $@
 
@@ -152,9 +172,14 @@ OBJFILE = $(BUILD_DIR)/main.o $(BUILD_DIR)/init.o \
 		  $(BUILD_DIR)/prog3.o	$(BUILD_DIR)/prog4.o \
 		  $(BUILD_DIR)/prog5.o  $(BUILD_DIR)/common.o \
 		  $(BUILD_DIR)/fork.o   $(BUILD_DIR)/exit.o \
-		  $(BUILD_DIR)/wait.o   $(BUILD_DIR)/multiproc.o \
+		  $(BUILD_DIR)/wait.o   $(BUILD_DIR)/exec.o \
+		   $(BUILD_DIR)/multiproc.o \
 		  $(BUILD_DIR)/bank.o   $(BUILD_DIR)/enjoy.o \
-		  $(BUILD_DIR)/readerwriter.o
+		  $(BUILD_DIR)/readerwriter.o \
+		  $(BUILD_DIR)/filesystem.o \
+		  $(BUILD_DIR)/shell.o  $(BUILD_DIR)/fsfunc.o \
+		  $(BUILD_DIR)/file.o   $(BUILD_DIR)/disk.o 
+		  
 
 # 要遵守 调用在前，实现在后，否则虚拟地址会出错
 BOOTFILE = $(BUILD_DIR)/mbr.com $(BUILD_DIR)/loader.com

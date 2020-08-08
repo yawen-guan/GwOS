@@ -164,5 +164,5 @@ void kprintf(const char* format, ...) {
    char buf[1024] = {0};
    vsprintf(buf, format, args);
    va_end(args);
-   console_put_str(buf, 0x07);
+//    console_put_str(buf, 0x07);
 }

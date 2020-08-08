@@ -1,10 +1,13 @@
 #include "fsfunc.h"
 
-#include <stdio.h>
+// #include <stdio.h>
 
 #include "disk.h"
+#include "exec.h"
 #include "file.h"
+#include "stdio.h"
 #include "string.h"
+#include "syscall.h"
 
 char* msg_help =
     "help: print the instructions and their usage\n\r"
@@ -209,7 +212,8 @@ bool write_file(struct ActiveFile* acfile) {
     acfile->head = now;
     int clusID = acfile->file->FstClus;
 
-    char s[4096];
+    char s[1024];
+    printf("Please enter content: \n");
     scanf("%s", s);
     int s_len = strlen(s);
     for (int i = 0; i < s_len; i++) {  // strange strlen
@@ -251,6 +255,41 @@ bool write_file(struct ActiveFile* acfile) {
     }
     write_fat_next_cluster(clusID, 0xFFF);
     acfile->buffsize = size;
+    return true;
+}
+
+bool write_file_from_sda(struct ActiveFile* acfile, uint32_t filesize) {
+    if (acfile->Type == ReadOnly) return false;
+    int size = 0, id = 0, cnt = 0;
+    uint8_t buff[512];
+    struct AFBLNode* now = get_empty_AFBLNode();
+    acfile->head = now;
+    int clusID = acfile->file->FstClus;
+    uint32_t secCnt = DIV_ROUND_UP(filesize, 512);
+
+    for (int i = 0; i < secCnt; i++) {
+        if (i >= 1) {
+            int newClusID = get_fat_next_cluster(clusID);
+            if (newClusID >= 0xFF8 && newClusID <= 0xFFF)
+                newClusID = append_a_cluster(clusID);
+            if (newClusID == -1) return false;
+            clusID = newClusID;
+            now->next = get_empty_AFBLNode();
+            if (now->next == NULL) return false;
+            now = now->next;
+        }
+        read_disk(buff, 300 + i, false);
+        init_AFBLNode(now, buff, NULL);
+    }
+
+    // printf("sdb %d sector = \n", 32);
+    // read_disk(buff, 32, true);
+    // for (int j = 0; j < 512; j++)
+    //     printf("%x ", buff[j]);
+    // printf("\n");
+    // printf("secID = %d\n", clusID + ClusToSec);
+
+    acfile->buffsize = filesize;
     return true;
 }
 
@@ -404,11 +443,11 @@ bool append_file(struct File* file1, struct File* file2) {
     return true;
 }
 
-void help() {
+void shell_help() {
     printf("%s\n", msg_help);
 }
 
-void ls(struct File* nowDir) {
+void shell_ls(struct File* nowDir) {
     char par[50];
     scanf("%s", par);
     if (strcmp(par, "-l") == 0)
@@ -420,7 +459,7 @@ void ls(struct File* nowDir) {
     }
 }
 
-void tree(struct File* nowDir) {
+void shell_tree(struct File* nowDir) {
     int level;
     char par[50];
     scanf("%s%d", par, &level);
@@ -434,7 +473,7 @@ void tree(struct File* nowDir) {
     }
 }
 
-void cd(struct File** ptr_to_nowDir, char* nowPath) {
+void shell_cd(struct File** ptr_to_nowDir, char* nowPath) {
     char s[50] = {0}, dirPath[50] = {0}, nextPath[50] = {0};
     scanf("%s", s);
     standard_dir_path(dirPath, s);
@@ -558,7 +597,7 @@ void file_path_to_dir_path(const char* filePath, char* dirPath, char* filename) 
     generate_filename(s, filename);
 }
 
-void touch(struct File* nowDir) {
+void shell_touch(struct File* nowDir) {
     char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
     scanf("%s", filePath);
     file_path_to_dir_path(filePath, dirPath, filename);
@@ -580,7 +619,7 @@ void touch(struct File* nowDir) {
     }
 }
 
-void mkdir(struct File* nowDir) {
+void shell_mkdir(struct File* nowDir) {
     char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
     scanf("%s", filePath);
     file_path_to_dir_path(filePath, dirPath, filename);
@@ -601,7 +640,7 @@ void mkdir(struct File* nowDir) {
         printf("Failed to create empty directory.\n");
 }
 
-void cat(struct File* nowDir) {
+void shell_cat(struct File* nowDir) {
     char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
     scanf("%s", filePath);
     file_path_to_dir_path(filePath, dirPath, filename);
@@ -631,7 +670,7 @@ void cat(struct File* nowDir) {
     // printf("Successfully printed the content.\n");
 }
 
-void write(struct File* nowDir) {
+void shell_write(struct File* nowDir, bool from_sda, uint32_t filesize) {
     char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
     scanf("%s", filePath);
     file_path_to_dir_path(filePath, dirPath, filename);
@@ -653,15 +692,14 @@ void write(struct File* nowDir) {
         printf("The active file list is full. Failed to open and print the file.\n");
         return;
     }
-    printf("Please enter content: \n");
-    if (write_file(acfile))
+    if ((from_sda == true && write_file_from_sda(acfile, filesize)) || (from_sda == false && write_file(acfile)))
         printf("Successfully wroted the file\n");
     else
         printf("Failed to write the file\n");
     close_file(acfile);
 }
 
-void append(struct File* nowDir) { // here
+void shell_append(struct File* nowDir) {  // here
     struct File* nowDir1 = nowDir;
     struct File* nowDir2 = nowDir;
 
@@ -697,7 +735,7 @@ void append(struct File* nowDir) { // here
         printf("Failed to append file. \n");
 }
 
-void rm(struct File* nowDir) {
+void shell_rm(struct File* nowDir) {
     // string s, filePath, dirPath, filename, tmpPath = "";
     // cin >> s;
 
@@ -745,7 +783,7 @@ void rm(struct File* nowDir) {
     }
 }
 
-void rmdir(struct File* nowDir) {
+void shell_rmdir(struct File* nowDir) {
     char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
     scanf("%s", filePath);
     file_path_to_dir_path(filePath, dirPath, filename);
@@ -758,4 +796,48 @@ void rmdir(struct File* nowDir) {
         printf("Successfully deleted the directory.\n");
     else
         printf("Failed to delete the directory.\n");
+}
+
+void shell_exec(struct File* nowDir) {
+    char filePath[50] = {0}, dirPath[50] = {0}, filename[50] = {0}, tmpPath[50] = {0};
+    scanf("%s", filePath);
+    file_path_to_dir_path(filePath, dirPath, filename);
+
+    if (try_cd(dirPath, &nowDir, tmpPath) == false) {
+        printf("Failed to open and print the file.\n");
+        return;
+    }
+
+    struct File* file = is_file_exist(nowDir, filename);
+    if (file == NULL) {
+        printf("Error: No such a file.\n");
+        return;
+    }
+    if (file->Attr == 0x10) {
+        printf("Error: It's a directory.\n");
+        return;
+    }
+
+    struct ActiveFile* acfile = open_file(file, ReadOnly);
+    if (acfile == NULL) {
+        printf("The active file list is full. Failed to open and print the file.\n");
+        return;
+    }
+    int pid = fork();
+    if (pid) {
+        int32_t status;
+        wait(pid, &status);
+    } else {
+        execv(acfile, NULL);
+    }
+    close_file(acfile);
+    // printf("Successfully printed the content.\n");
+}
+
+void shell_write_program_to_sdb() {
+    shell_touch(&rootfile);
+
+    uint32_t filesize;
+    scanf("%d", &filesize);
+    shell_write(&rootfile, true, filesize);
 }

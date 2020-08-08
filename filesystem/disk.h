@@ -3,13 +3,17 @@
 #include "global.h"
 #include "stdint.h"
 #include "common.h"
-// #include "idx.h"
+#include "ide.h"
 
 // extern struct disk disk0, disk1;
 
-bool disk_init(const char* ImgName);
+// bool disk_init(const char* ImgName);
 
-bool disk_close(const char* ImgName);
+// bool disk_close(const char* ImgName);
+
+// void disk_init();
+
+void disk_close();
 
 bool boot_sector_init();
 

@@ -17,4 +17,6 @@ int8_t strcmp(const char *a, const char *b);
 
 char *strcat(char *dst, const char *src);
 
+int memcmp(const void *a_, const void *b_, uint32_t size);
+
 // #endif

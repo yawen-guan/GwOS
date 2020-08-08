@@ -7,6 +7,7 @@
 #include "print.h"
 #include "string.h"
 #include "sync.h"
+#include "stdio.h"
 #include "thread.h"
 
 #define MEM_BITMAP_BASE 0xc009a000    // 支持四页的位图，最大可管理512MB的物理内存
@@ -198,7 +199,8 @@ void *get_one_page(enum pool_flag pf, uint32_t vaddr) {
 
     //用户进程
     if (now->pg_dir != NULL && pf == PF_USER) {
-        ASSERT(vaddr > now->userprog_vaddr.vaddr_start);
+        // kprintf("vaddr_start = %x\n", now->userprog_vaddr.vaddr_start);
+        ASSERT(vaddr >= now->userprog_vaddr.vaddr_start);
         idx = (vaddr - now->userprog_vaddr.vaddr_start) / PG_SIZE;
         bitmap_set_idx(&now->userprog_vaddr.vaddr_bitmap, idx, 1);
     }

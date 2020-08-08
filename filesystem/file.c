@@ -1,10 +1,12 @@
 #include "file.h"
 
-#include <stdio.h>
+// #include <stdio.h>
 
 #include "common.h"
 #include "disk.h"
 #include "string.h"
+#include "stdio.h"
+#include "syscall.h"
 
 struct File rootfile;
 struct File filelist[MAX_FILE_CNT];

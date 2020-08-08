@@ -50,11 +50,31 @@ int8_t strcmp(const char *a, const char *b) {
     return 0;
 }
 
-char* strcat(char* dst, const char* src) {
-   assert(dst != NULL && src != NULL);
-   char* str = dst;
-   while (*str++);
-   --str;      
-   while((*str++ = *src++));	 
-   return dst;
+char *strcat(char *dst, const char *src) {
+    // ASSERT(dst != NULL && src != NULL);
+    char *str = dst;
+    while (*str++)
+        ;
+    --str;
+    while ((*str++ = *src++))
+        ;
+    return dst;
+}
+
+/**
+ * @brief 连续比较以地址a_和地址b_开头的size个字节,若相等则返回0,若a_大于b_返回+1,否则返回-1 
+ * 
+ */
+int memcmp(const void* a_, const void* b_, uint32_t size) {
+   const char* a = a_;
+   const char* b = b_;
+   // ASSERT(a != NULL || b != NULL);
+   while (size-- > 0) {
+      if(*a != *b) {
+	 return *a > *b ? 1 : -1; 
+      }
+      a++;
+      b++;
+   }
+   return 0;
 }

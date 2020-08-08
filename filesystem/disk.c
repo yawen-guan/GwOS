@@ -1,42 +1,42 @@
 #include "disk.h"
 
 #include "common.h"
+#include "debug.h"
 #include "disk.h"
+#include "stdio.h"
 #include "string.h"
+#include "syscall.h"
 // #include "debug.h"
 // #include "idx.h"
-#include <stdio.h>
+// #include <stdio.h>
 
-// uint8_t img[512 * 20];  //MBR + FAT1 + FAT2
-uint8_t img[ImgByteSize];
+uint8_t img[512 * 20];  //MBR + FAT1 + FAT2
+// uint8_t img[ImgByteSize];
 
 struct BootSector bootsec;
 
-bool disk_init(const char* ImgName) {
-    FILE* f;
-
-    f = fopen(ImgName, "rb");
-    if (f == NULL) return false;
-    fread(img, sizeof(uint8_t), 512 * 2880, f);
-    fclose(f);
-
-    return true;
+void disk_close() {
+    for (int i = 0; i < 20; i++) {
+        write_sector(i, img + i * 512);
+    }
 }
 
-bool disk_close(const char* ImgName) {
-    FILE* f;
-    f = fopen(ImgName, "wb");
-    if (f == NULL) return false;
-    fwrite(img, sizeof(uint8_t), 512 * 2880, f);
-    fclose(f);
-    return true;
+void update_img() {
+    uint8_t buff[512];
+    for (int i = 0; i < 20; i++) {
+        read_sector(i, buff);
+        for (int j = 0; j < 512; j++) {
+            img[i * 512 + j] = buff[j];
+        }
+    }
 }
 
 bool boot_sector_init() {
     uint8_t buff[512];
     read_sector(0, buff);
-    if (buff[510] != 0x55 && buff[511] != 0xAA) return false;
-
+    if (buff[510] != 0x55 || buff[511] != 0xAA) {
+        return false;
+    }
     for (int i = 3; i < 11; i++) bootsec.BS_OEMName[i - 3] = buff[i];
     bootsec.BPB_BytsPerSec = get_u16(buff, 11);
     bootsec.BPB_SecPerClus = get_u8(buff, 13);
@@ -112,18 +112,18 @@ void write_u32(uint8_t* buff, int st, uint32_t data) {
 }
 
 void read_sector(const uint16_t secID, uint8_t* buff) {
-    // ASSERT(secID >= 0 && secID <= SecCnt);
-    // ide_read(disk1, secID, buff, 1);
-    for (int i = secID * 512; i < (secID + 1) * 512; i++) {
-        buff[i - secID * 512] = img[i];
-    }
+    ASSERT(secID >= 0 && secID <= SecCnt);
+    read_disk(buff, secID, true);
+    // for (int i = secID * 512; i < (secID + 1) * 512; i++) {
+    // buff[i - secID * 512] = img[i];
+    // }
 }
 
 void write_sector(const uint16_t secID, const uint8_t* buff) {
-    // ASSERT(secID >= 0 && secID <= SecCnt);
-    // ide_write(disk1, secID, buff, 1);
-    for (int i = 0; i < 512; i++)
-        img[i + secID * 512] = buff[i];
+    ASSERT(secID >= 0 && secID <= SecCnt);
+    write_disk(buff, secID, true);
+    // for (int i = 0; i < 512; i++)
+    // img[i + secID * 512] = buff[i];
 }
 
 void clear_cluster(const uint16_t clusID) {
@@ -138,6 +138,7 @@ void write_fat_sector(const uint16_t secID, const uint8_t* buff) {
 }
 
 uint16_t get_fat_next_cluster(const uint16_t clusID) {
+    update_img();
     int pos = clusID / 2 * 3 + clusID % 2;  // pos ~ pos + 1
     uint16_t nextClus = 0;
     if ((clusID % 2) == 0) {
@@ -176,6 +177,7 @@ void write_fat_next_cluster(const uint16_t clusID, const uint16_t data) {
 }
 
 uint16_t find_empty_cluster() {
+    update_img();
     uint8_t buff[512];
     uint16_t clusID = -1;
     for (int i = 512; i < 512 + BytePerSec * 9; i += 3) {  // i, i + 1, i + 2

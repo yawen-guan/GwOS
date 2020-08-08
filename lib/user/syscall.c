@@ -1,5 +1,7 @@
 #include "syscall.h"
 
+#include "filesystem.h"
+
 //宏：最后一个语句为代码块的返回值
 
 #define _syscall0(NUMBER) ({    \
@@ -70,38 +72,50 @@ void free(void *ptr) {
     _syscall1(SYS_FREE, ptr);
 }
 
-int16_t fork(){
+int16_t fork() {
     return _syscall0(SYS_FORK);
 }
 
 // int16_t wait(int32_t *child_exit_status){
-    // return _syscall1(SYS_WAIT, child_exit_status);
+// return _syscall1(SYS_WAIT, child_exit_status);
 // }
 
-int16_t wait(int32_t pid, int32_t *child_exit_status){
+int16_t wait(int32_t pid, int32_t *child_exit_status) {
     return _syscall2(SYS_WAIT, pid, child_exit_status);
 }
 
-int16_t wait_without_pid(int32_t *child_exit_status){
+int16_t wait_without_pid(int32_t *child_exit_status) {
     return _syscall1(SYS_WAIT, child_exit_status);
 }
 
-void exit(int32_t status){
+void exit(int32_t status) {
     _syscall1(SYS_EXIT, status);
 }
 
-void sleep(uint32_t ms){
+void sleep(uint32_t ms) {
     _syscall1(SYS_SLEEP, ms);
 }
 
-void acquire_lock(struct lock *lock){
+void acquire_lock(struct lock *lock) {
     _syscall1(SYS_ACQUIRE_LOCK, lock);
 }
 
-void release_lock(struct lock *lock){
+void release_lock(struct lock *lock) {
     _syscall1(SYS_RELEASE_LOCK, lock);
 }
 
-void initial_lock(struct lock *lock){
+void initial_lock(struct lock *lock) {
     _syscall1(SYS_INITIAL_LOCK, lock);
+}
+
+void read_disk(uint8_t *buf, int secID, bool is_sdb) {
+    _syscall3(SYS_READ_DISK, buf, secID, is_sdb);
+}
+
+void write_disk(const uint8_t *buf, int secID, bool is_sdb) {
+    _syscall3(SYS_WRITE_DISK, buf, secID, is_sdb);
+}
+
+int32_t execv(struct ActiveFile *acfile, const char *argv[]) {
+    _syscall2(SYS_EXECV, acfile, argv);
 }

@@ -1,3 +1,5 @@
+#include "thread.h"
+
 #include "console.h"
 #include "debug.h"
 #include "global.h"
@@ -8,7 +10,6 @@
 #include "string.h"
 #include "sync.h"
 #include "syscall.h"
-#include "thread.h"
 
 #define PG_SIZE 4096  // 4KB/page
 #define STACK_MAGIC 0x12345678

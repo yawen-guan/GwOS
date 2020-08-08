@@ -2,6 +2,7 @@
 
 #include "stdint.h"
 #include "sync.h"
+#include "filesystem.h"
 
 enum SYSCALL_FUNC {
     SYS_GET_PID,
@@ -20,6 +21,9 @@ enum SYSCALL_FUNC {
     SYS_ACQUIRE_LOCK,
     SYS_RELEASE_LOCK,
     SYS_INITIAL_LOCK,
+    SYS_READ_DISK,
+    SYS_WRITE_DISK,
+    SYS_EXECV
 };
 
 uint32_t get_pid();
@@ -55,3 +59,9 @@ void acquire_lock(struct lock *lock);
 void release_lock(struct lock *lock);
 
 void initial_lock(struct lock *lock);
+
+void read_disk(uint8_t *buf, int secID, bool is_sdb);
+
+void write_disk(const uint8_t *buf, int secID, bool is_sdb);
+
+int32_t execv(struct ActiveFile *acfile, const char *argv[]);
