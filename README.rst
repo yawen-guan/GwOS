@@ -23,3 +23,7 @@ Features
 * Synchronization: lock and semaphore
 * System call: get_pid, read, write, call, malloc, free 
 * User library: scanf, printf
+
+References
+----------
+Base on the book: 《操作系统真象还原》by 郑钢
